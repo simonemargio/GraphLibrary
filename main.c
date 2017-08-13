@@ -1,6 +1,10 @@
-#include <stdio.h>
+#include "L_Utility.h"
 
 int main() {
-    printf("Hello, World!\n");
+
+
+    F_start();
+
+
     return 0;
 }
