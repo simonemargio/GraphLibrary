@@ -4,9 +4,27 @@
 
 #ifndef INC_1_L_UTILITY_H
 #define INC_1_L_UTILITY_H
+#include "L_Grafo.h"
+typedef  struct struttura_gestione_grafo *Grafo;
+typedef struct struttura_grafo_lista_adiacenza *L;
+typedef struct struttura_elemento_matrice *M;
+typedef struct struttura_elemento_array_matrice *A;
 
- void F_start();
-
-
+void F_start();
+Grafo F_info_grafo(Grafo G);
+int F_list_matr();
+int F_tipo_dato_grafo();
+int F_num_elem_grafo();
+int F_grafo_pesato();
+Grafo F_aggiungi_info(Grafo G,int list_matr,int tipo_dato,int num_elem,int peso);
+int F_seleziona(int dim,char minimo,char massimo,int escludi);
+Grafo F_crea_matrice_adj(Grafo G);
+Grafo F_crea_lista_adj(Grafo G);
+void *F_crea_intero();
+L F_alloca_elemento_lista(L Lista, void *elem);
+void F_stampa_lista_adiacenza(Grafo G);
+void F_stampa_intero(void *elem);
+void F_inizializza_matrice(Grafo G);
+void F_stampa_matrice_adiacenza(Grafo G);
 
 #endif //INC_1_L_UTILITY_H
