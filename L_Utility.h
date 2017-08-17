@@ -9,8 +9,11 @@ typedef  struct struttura_gestione_grafo *Grafo;
 typedef struct struttura_grafo_lista_adiacenza *L;
 typedef struct struttura_elemento_matrice *M;
 typedef struct struttura_elemento_array_matrice *A;
+typedef struct struttura_grafo_pesato *P;
 
 void F_start();
+int F_menu_principale();
+int F_menu_avanzato(int listmatr);
 Grafo F_info_grafo(Grafo G);
 int F_list_matr();
 int F_tipo_dato_grafo();
@@ -26,5 +29,13 @@ void F_stampa_lista_adiacenza(Grafo G);
 void F_stampa_intero(void *elem);
 void F_inizializza_matrice(Grafo G);
 void F_stampa_matrice_adiacenza(Grafo G);
+void F_aggiungi_arco_lista(Grafo G,int p,int a);
+void F_aggiungi_arco_matrice(Grafo G,int p,int a);
+int F_seleziona_nodo_lista(Grafo G);
+int F_seleziona_nodo_matrice(Grafo G);
+int F_seleziona_indice(int dim, int nsize);
+void * F_preleva_elem_lista(L lista,int elemento);
+float F_inserisci_float(int dim);
+P F_alloca_struttura_peso(float peso);
 
 #endif //INC_1_L_UTILITY_H
