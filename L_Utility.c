@@ -262,13 +262,13 @@ Grafo F_crea_matrice_adj(Grafo G)
     {
         void *elem=G->tipo_elemento();
         array_nodo_matrice[i].nodo=elem;
-        array_nodo_matrice[i].ptrPeso=NULL;
+     //   array_nodo_matrice[i].ptrPeso=NULL;
     }
     struttura_matrice->nodo=array_nodo_matrice;
 
-    int **matrice =(int **)malloc(G->nsize* sizeof(int *));
+    float **matrice =(float **)malloc(G->nsize* sizeof(float *));
     for(i=0;i<G->nsize;i++)
-        matrice[i]=(int *)malloc(G->nsize* sizeof(int *));
+        matrice[i]=(float *)malloc(G->nsize* sizeof(float *));
 
     struttura_matrice->matrice=matrice;
     G->struttura=struttura_matrice;
@@ -281,7 +281,7 @@ void F_inizializza_matrice(Grafo G)
 {
     int i=0,j=0;
     M struttura_matrice = G->struttura;
-    int **matrice=struttura_matrice->matrice;
+    float **matrice=struttura_matrice->matrice;
 
     for(i=0;i<G->nsize;i++)
         for(j=0;j<G->nsize;j++) {
@@ -294,10 +294,15 @@ void F_stampa_matrice_adiacenza(Grafo G)
 {
     int i=0,j=0;
     M struttura_matrice = G->struttura;
-    int **matrice=struttura_matrice->matrice;
+    float **matrice=struttura_matrice->matrice;
     Nm nodi_matrice = struttura_matrice->nodo;
 
-    printf("\n[Indice di selezione]:[nodo]\n");
+    if(G->infpeso==1) puts("\nStruttura della matrice: [Indice]:[nodo]\n");
+    else {
+        puts("\nStruttura della matrice: [Indice]:[Nodo]-(Peso)->[Nodo]\n");
+        F_stampa_peso_matrice_adiacenza(G);
+    }
+    printf("Nodi presenti:\n");
     for(i=0;i<G->nsize;i++)
     {
        if(i!=0) printf(" [%d]:",i);
@@ -305,14 +310,48 @@ void F_stampa_matrice_adiacenza(Grafo G)
         G->stampa_elemento(nodi_matrice[i].nodo);
     }
 
-    puts("\n\nMatrice di riferimento");
+    puts("\n\nMatrice di riferimento:");
     for(i=0;i<G->nsize;i++) {
-        if(i!=0) puts("");
+            printf("[%d]:\t",i);
+        //if(i!=0) puts("");
         for (j = 0; j < G->nsize; j++) {
-
-            printf("|%d|\t", matrice[i][j]);
+            if(matrice[i][j]>0 || matrice[i][j]<0)
+               printf("|1|\t");
+            else printf("|0|\t");
+            // printf("|%f|\t", matrice[i][j]);
         }
+        puts("");
     }
+    puts("\n");
+    return;
+}
+
+void F_stampa_peso_matrice_adiacenza(Grafo G)
+{
+    int controllo = 0,i=0,j=0;
+    M struttura_matrice = G->struttura;
+    float **matrice=struttura_matrice->matrice;
+    Nm nodi_matrice = struttura_matrice->nodo;
+
+    printf("Informazioni sul peso degli archi:");
+
+    for(i=0;i<G->nsize;i++)
+        for(j=0;j<G->nsize;j++)
+        {
+           if(matrice[i][j]>0 || matrice[i][j]<0)
+           {
+               controllo=1;
+               G->stampa_elemento(nodi_matrice[i].nodo);
+               printf("-");
+               printf("(%f)",matrice[i][j]);
+               printf("->");
+               G->stampa_elemento(nodi_matrice[j].nodo);
+               puts("");
+           }
+        }
+    
+    if(controllo!=1) puts(" non sono ancora presenti archi con pesi.\n");
+
     return;
 }
 
@@ -348,7 +387,12 @@ void F_stampa_lista_adiacenza(Grafo G)
 {
     L Lista=G->struttura;
     int i=0;
-    puts("\n[Indice]:[Nodo]->[Arco]\n");
+    if(G->infpeso==1) puts("\nStruttura della lista: \n[Indice]:[Nodo]->[Nodo]\n");
+    else
+    {
+        puts("\nStruttura della lista: \n[Indice]:[Nodo]-(Peso)->[Nodo]\n");
+        F_stampa_peso_lista_adiacenza(G);
+    }
     while (Lista!=NULL)
     {
         printf("[%d]:",i);
@@ -377,6 +421,45 @@ void F_stampa_lista_adiacenza(Grafo G)
     return;
 }
 
+void F_stampa_peso_lista_adiacenza(Grafo G)
+{
+    int controllo = 0;
+    L Lista=G->struttura;
+    printf("Informazioni sul peso degli archi:");
+
+    while (Lista!=NULL)
+    {
+        if(Lista->ptrArco!=NULL) {
+            puts("");
+            controllo = 1;
+            G->stampa_elemento(Lista->nodo);
+            printf("-");
+            printf("(%f)", Lista->ptrArco->ptrPeso->peso);
+            printf("->");
+            G->stampa_elemento(Lista->ptrArco->nodo);
+
+            L Arco = Lista->ptrArco;
+
+             while (Arco!=NULL && Arco->ptrArco!=NULL)
+             {
+                 puts("");
+                 G->stampa_elemento(Lista->nodo);
+                 printf("-");
+                 printf("(%f)",Arco->ptrArco->ptrPeso->peso);
+                 printf("->");
+                 G->stampa_elemento(Arco->ptrArco->nodo);
+                 Arco=Arco->ptrArco;
+               //  puts("");
+             }
+        }
+        Lista=Lista->ptrNext;
+    }
+
+    if(controllo!=1) puts(" non sono ancora presenti archi con pesi.\n");
+    puts("\n");
+    return;
+}
+
 /* Generazione casuale di un valore intero */
 void *F_crea_intero()
 {
@@ -400,7 +483,7 @@ void F_aggiungi_arco_lista(Grafo G,int p,int a)
 {
     L lista = G->struttura;
     L elem_lista_a = NULL;
-    int i = 0;
+    int i = 0,checkArco=0;
     void *elem=F_preleva_elem_lista(lista,a);
     elem_lista_a=F_alloca_elemento_lista(elem_lista_a,elem);
 
@@ -411,18 +494,56 @@ void F_aggiungi_arco_lista(Grafo G,int p,int a)
 
     if(lista->ptrArco!=NULL)
     {
-        elem_lista_a->ptrArco=lista->ptrArco;
+       if(G->infpeso!=1) {
+           L checkArcoPresente = lista;
+           while (checkArcoPresente != NULL) {
+               if (elem_lista_a->nodo == checkArcoPresente->nodo) {
+                   checkArco = F_cambia_peso_lista(checkArcoPresente,G->stampa_elemento);
+                   free(elem_lista_a);
+                   break;
+               }
+               checkArcoPresente = checkArcoPresente->ptrArco;
+           }
+       }
+      if(!checkArco) elem_lista_a->ptrArco=lista->ptrArco;
     }
-    lista->ptrArco=elem_lista_a;
 
-    if(G->listmatr!=1) // PESATO
-    {
-       float peso = F_inserisci_float(6);
-       P stpeso = F_alloca_struttura_peso(peso);
-       lista->ptrPeso=stpeso;
+    if(!checkArco) {
+        lista->ptrArco = elem_lista_a;
+
+        if (G->infpeso != 1) // PESATO
+        {
+            float peso = F_inserisci_float(6);
+            P stpeso = F_alloca_struttura_peso(peso);
+            elem_lista_a->ptrPeso = stpeso;
+        }
     }
-
     return;
+}
+
+int F_cambia_peso_lista(L elem,StampaElemento stampa_elemento)
+{
+    printf("\nE' gia' presente un arco pesato che arriva al nodo:");
+    stampa_elemento(elem->nodo);
+    int scelta = F_menu_scelta_cambio_peso();
+
+    if(scelta==1)
+    elem->ptrPeso->peso= F_inserisci_float(6);
+
+    return 1;
+}
+
+int F_menu_scelta_cambio_peso()
+{
+    int scelta=0;
+
+    puts("\nVuoi cambiare peso?\n");
+    puts("1] Si, cambia peso");
+    puts("2] No, lascia il peso originale");
+    printf("\nSeleziona tramite valore numerico:");
+    scelta=F_seleziona(1,'1','2',0);
+
+    return scelta;
 }
 
 P F_alloca_struttura_peso(float peso)
@@ -449,10 +570,25 @@ void * F_preleva_elem_lista(L lista,int elemento)
 void F_aggiungi_arco_matrice(Grafo G,int p,int a)
 {
     M matrice = G->struttura;
+    Nm nodi_matrice = matrice->nodo;
+    int scelta = 0;
 
+    if(G->infpeso!=1) // PESATO
+    {
+        if(matrice->matrice[p][a]>0 || matrice->matrice[p][a]<0)
+        {
+            printf("\nE' gia' presente un arco pesato che arriva al nodo: ");
+            G->stampa_elemento(nodi_matrice[a].nodo);
+            scelta = F_menu_scelta_cambio_peso();
+        }
+
+        if(scelta==1 || matrice->matrice[p][a]==0) {
+            float peso = F_inserisci_float(6);
+            matrice->matrice[p][a] = peso;
+        }
+    }
+    else
     matrice->matrice[p][a]=1;
-
-    // controllo se serve il peso
 
     return;
 }
@@ -522,6 +658,7 @@ float F_inserisci_float(int dim)
     char tmp[dim],c='*';
     int i=0;
     float ftemp;
+    fflush(stdin);
 
     printf("Aggiunta del peso. Inserire la parte intera:");
 

@@ -47,13 +47,13 @@ struct struttura_grafo_pesato
 struct struttura_elemento_matrice
 {
     void *nodo;
-    int **matrice;
+    float **matrice; // Matrice + peso
 };
 
 struct struttura_elemento_array_nodo_matrice
 {
     void *nodo;
-    struct struttura_grafo_pesato *ptrPeso;
+   // struct struttura_grafo_pesato *ptrPeso;
 };
 
 typedef struct struttura_grafo_lista_adiacenza *L;

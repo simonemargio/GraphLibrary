@@ -5,6 +5,7 @@
 #ifndef INC_1_L_UTILITY_H
 #define INC_1_L_UTILITY_H
 #include "L_Grafo.h"
+typedef void (*StampaElemento) (void*);
 typedef  struct struttura_gestione_grafo *Grafo;
 typedef struct struttura_grafo_lista_adiacenza *L;
 typedef struct struttura_elemento_matrice *M;
@@ -37,5 +38,9 @@ int F_seleziona_indice(int dim, int nsize);
 void * F_preleva_elem_lista(L lista,int elemento);
 float F_inserisci_float(int dim);
 P F_alloca_struttura_peso(float peso);
+void F_stampa_peso_lista_adiacenza(Grafo G);
+void F_stampa_peso_matrice_adiacenza(Grafo G);
+int F_cambia_peso_lista(L elem,StampaElemento stampa_elemento);
+int F_menu_scelta_cambio_peso();
 
 #endif //INC_1_L_UTILITY_H
