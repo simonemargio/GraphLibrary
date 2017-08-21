@@ -9,7 +9,6 @@ typedef void (*StampaElemento) (void*);
 typedef  struct struttura_gestione_grafo *Grafo;
 typedef struct struttura_grafo_lista_adiacenza *L;
 typedef struct struttura_elemento_matrice *M;
-typedef struct struttura_elemento_array_matrice *A;
 typedef struct struttura_grafo_pesato *P;
 
 void F_start();
@@ -42,5 +41,13 @@ void F_stampa_peso_lista_adiacenza(Grafo G);
 void F_stampa_peso_matrice_adiacenza(Grafo G);
 int F_cambia_peso_lista(L elem,StampaElemento stampa_elemento);
 int F_menu_scelta_cambio_peso();
+void *F_inserisci_intero(int dim);
+int F_check_nodo_uguale_lista(Grafo G,void *elem);
+int F_check_nodo_uguale_matrice(Grafo G,void *elem);
+int F_confronto_interi(void *stringa,void *stringa_nodo);
+void F_inserisci_nodo_matrice(Grafo G,void *elem);
+void F_inserisci_nodo_lista(Grafo G,void *elem);
+void F_copia_matrice (float ** destmat, float ** srcmat,int dim);
+
 
 #endif //INC_1_L_UTILITY_H

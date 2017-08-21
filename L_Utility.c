@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 #include <time.h>
 
 void F_start()
@@ -17,15 +18,18 @@ void F_start()
     G=F_info_grafo(G);
     G=F_crea_grafo(G);
     G->stampa_generale(G);
-   // F_stampa_lista_adiacenza(G);
-   //  F_stampa_matrice_adiacenza(G);
 
     do
     {
         scelta=F_menu_principale();
         switch (scelta)
         {
-            case 2: // Inserisci un arco
+            case 1: // Inserisci vertice
+                    F_aggiungi_vertice(G);
+                    G->stampa_generale(G);
+                break;
+
+            case 2: // Inserisci arco
                     F_aggiungi_arco(G);
                     G->stampa_generale(G);
                 break;
@@ -175,12 +179,16 @@ Grafo F_aggiungi_info(Grafo G,int list_matr,int tipo_dato,int num_elem,int peso)
             G->inserisci_arco=F_aggiungi_arco_lista;
             G->seleziona_nodo=F_seleziona_nodo_lista;
             G->stampa_generale=F_stampa_lista_adiacenza;
+            G->check_nodo_uguale=F_check_nodo_uguale_lista;
+            G->inserisci_nodo=F_inserisci_nodo_lista;
             break;
         case 2: // Matrice
             G->tipo_struttura=F_crea_matrice_adj;
             G->inserisci_arco=F_aggiungi_arco_matrice;
             G->seleziona_nodo=F_seleziona_nodo_matrice;
             G->stampa_generale=F_stampa_matrice_adiacenza;
+            G->check_nodo_uguale=F_check_nodo_uguale_matrice;
+            G->inserisci_nodo=F_inserisci_nodo_matrice;
             break;
         default:
             puts("Error: selezione tipologia di struttura non valida!\n");
@@ -193,6 +201,8 @@ Grafo F_aggiungi_info(Grafo G,int list_matr,int tipo_dato,int num_elem,int peso)
             puts("SCELTO INTERO");
             G->tipo_elemento=F_crea_intero;
             G->stampa_elemento=F_stampa_intero;
+            G->inserisci_elemento=F_inserisci_intero;
+            G->confronto_elementi=F_confronto_interi;
             break;
 
         default:
@@ -651,6 +661,52 @@ int F_seleziona_indice(int dim, int nsize)
     return intero_preso;
 }
 
+/* Funzione per l'inserimento da parte dell'utente di un dato intero */
+void *F_inserisci_intero(int dim)
+{
+    /* DICHIARAZIONI VARIABILI */
+    char tmp[]="**********",c='*';
+    int intero_preso=0,i=0,flag=0;
+    fflush(stdin);
+    printf("\nINTERO: I valori vengono presi in modulo.\nInserire un valore intero di 10 cifre (Max: %d):",INT_MAX);
+
+    do
+    {
+        while( i<10 && (c=(char) getchar())!='\n' && c!=EOF )
+        {
+            if(c>='0' && c<='9')
+            {
+                tmp[i]=c;
+                i++;
+            }
+
+        }
+        sscanf(tmp,"%d",&intero_preso);
+
+        if(intero_preso<0) // Superato il liminte viene preso un valore negativo. Si necessita quindi di <0 e non >INT_MAX
+        {
+            printf("Valore inserito maggiore del limite massimo!\nInserisci di nuovo:");
+            while('\n'!=getchar());
+
+            /* Inizializzo vettore */
+            for(i=0;i<dim;i++)
+                tmp[i]='*';
+
+            i=0;
+        }
+        else // Valore corretto
+            flag=1;
+
+    }while(flag==0);
+
+    int *elemento=malloc(sizeof(int));
+    memcpy(elemento,&intero_preso,sizeof(int));
+
+    return elemento;
+}
+
+
+
 /* Funzione per l'inserimento da parte dell'utente di un dato float */
 float F_inserisci_float(int dim)
 {
@@ -700,4 +756,125 @@ float F_inserisci_float(int dim)
     void *elemento=malloc(sizeof(float));
     memcpy(elemento,&ftemp,sizeof(float));
     return ftemp;
+}
+
+
+
+int F_check_nodo_uguale_lista(Grafo G,void *elem)  // 0 non c'è . 1 c'è
+{
+    int controllo = 0,i=0;
+    L lista = G->struttura;
+
+    while (lista!=NULL)
+    {
+        printf("\n||%d|| ||%d||\n",*((int *)elem),*((int*)lista->nodo));
+        i = G->confronto_elementi(lista->nodo,elem);
+        if(i==0)
+        {
+            controllo=1;
+            break;
+        }
+
+        lista=lista->ptrNext;
+    }
+
+    return controllo;
+}
+
+int F_check_nodo_uguale_matrice(Grafo G,void *elem)
+{
+    int i=0,controllo=0,j=0;
+    M Matrice = G->struttura;
+    Nm nodo_matrice = Matrice->nodo;
+
+    for(i=0;i<G->nsize;i++)
+        {
+            j = G->confronto_elementi(nodo_matrice[i].nodo,elem);
+            if(j==0)
+            {
+                controllo=1;
+                break;
+            }
+        }
+
+    return controllo;
+}
+
+/* Funzione per il confronto di elementi interi */
+int F_confronto_interi(void *stringa,void *stringa_nodo)
+{
+    if(*((int *)stringa) < *((int *)stringa_nodo))
+    {
+        return -1;
+    }
+    else
+    {
+        if(*((int *)stringa) > *((int *)stringa_nodo))
+        {
+            return 1;
+        }
+        else
+            return 0;
+    }
+}
+
+
+void F_inserisci_nodo_lista(Grafo G,void *elem)
+{
+    L Lista = G->struttura;
+
+    L NewLista = F_alloca_elemento_lista(Lista,elem);
+
+    G->nsize=G->nsize+1;
+    G->struttura=NewLista;
+    return;
+}
+
+void F_inserisci_nodo_matrice(Grafo G,void *elem)
+{
+    int i=0,new_size=(G->nsize+1);
+    M struttura_matrice = G->struttura;
+    float **matrice_old=struttura_matrice->matrice;
+
+    float **matrice_new=(float **)malloc(new_size* sizeof(float *));
+    for(i=0;i<new_size;i++)
+          matrice_new[i]=(float *)malloc(new_size* sizeof(float *));
+
+    F_copia_matrice(matrice_new,matrice_old,G->nsize);
+
+
+    Nm nodi_matrice = struttura_matrice->nodo;
+    Nm array_nodo_matrice = (struct struttura_elemento_array_nodo_matrice *)realloc(nodi_matrice,new_size* sizeof(struct struttura_elemento_array_nodo_matrice));
+
+    array_nodo_matrice[G->nsize].nodo=elem;
+
+
+    // DEALLOCARE
+    for(i=0;i<G->nsize;i++)
+        free(matrice_old[i]);
+
+    free(matrice_old);
+
+    G->nsize=new_size;
+    struttura_matrice->nodo=array_nodo_matrice;
+    struttura_matrice->matrice=matrice_new;
+    G->struttura=struttura_matrice;
+    return;
+}
+
+
+void F_copia_matrice (float ** destmat, float ** srcmat,int dim)
+{
+   // memcpy(destmat,srcmat, dim*dim*sizeof(float));
+    int i=0,j=0;
+
+    for(i=0;i<dim+1;i++)
+        for(j=0;j<dim+1;j++)
+            destmat[i][j]=0;
+
+    for(i=0;i<dim;i++)
+        for(j=0;j<dim;j++)
+            destmat[i][j] = srcmat[i][j];
+
+    return;
 }

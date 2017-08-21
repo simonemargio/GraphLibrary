@@ -13,6 +13,10 @@ typedef void (*StampaElemento) (void*);
 typedef void (*InserisciArco) (Grafo G,int,int);
 typedef int (*SelezionaNodo) (Grafo G);
 typedef void (*StampaGenerale) (Grafo G);
+typedef void *(*InserisciElemento) (int);
+typedef int (*CheckNodoUguale) (Grafo G,void*);
+typedef int (*ConfrontoElementi) (void*, void*);
+typedef void (*InserisciNodo) (Grafo G,void*);
 
 struct struttura_gestione_grafo
 {
@@ -27,6 +31,10 @@ struct struttura_gestione_grafo
     InserisciArco inserisci_arco;
     SelezionaNodo seleziona_nodo;
     StampaGenerale stampa_generale;
+    InserisciElemento inserisci_elemento;
+    CheckNodoUguale check_nodo_uguale;
+    ConfrontoElementi confronto_elementi;
+    InserisciNodo inserisci_nodo;
 };
 
 
@@ -64,6 +72,7 @@ typedef struct struttura_grafo_pesato *P;
 Grafo F_alloca_grafo(Grafo G);
 Grafo F_crea_grafo(Grafo G);
 void F_aggiungi_arco(Grafo G);
+void F_aggiungi_vertice(Grafo G);
 
 
 #endif //INC_1_L_GRAFO_H

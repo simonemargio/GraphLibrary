@@ -46,7 +46,27 @@ void F_aggiungi_arco(Grafo G)
     return;
 }
 
+void F_aggiungi_vertice(Grafo G)
+{
+    if(G!=NULL)
+    {
+        void *elem=G->inserisci_elemento(5);
+        int nodouguale = G->check_nodo_uguale(G,elem);
 
+        if(nodouguale) {
+            printf("Nodo ");
+            G->stampa_elemento(elem);
+            printf(" gia' presente!\nSi prega di inserirne un altro.");
+        }
+        else {
+            puts("Eseguo inserimento");
+            G->inserisci_nodo(G,elem);
+        }
+    } else
+        puts("Struttura non presente!\n");
+
+    return;
+}
 
 
 
