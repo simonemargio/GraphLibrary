@@ -48,6 +48,16 @@ int F_confronto_interi(void *stringa,void *stringa_nodo);
 void F_inserisci_nodo_matrice(Grafo G,void *elem);
 void F_inserisci_nodo_lista(Grafo G,void *elem);
 void F_copia_matrice (float ** destmat, float ** srcmat,int dim);
-
+void F_cancella_arco_lista(Grafo G,int p,int a);
+void F_cancella_arco_matrice(Grafo G,int p,int a);
+void F_dealloca_intero(void *elem);
+void F_cancella_nodo_matrice(Grafo G,int c);
+void F_cancella_nodo_lista(Grafo G,int c);
+float F_ritorna_negativo(float num);
+void F_trasposto_matrice(Grafo G);
+void F_trasposto_lista(Grafo G);
+void *F_copia_dato_intero(void *val);
+void F_copia_matrice_identica (float ** destmat, float ** srcmat,int dim);
+void F_dealloca_grafo_lista(L Lista,Grafo G);
 
 #endif //INC_1_L_UTILITY_H

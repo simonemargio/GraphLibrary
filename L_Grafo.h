@@ -17,6 +17,11 @@ typedef void *(*InserisciElemento) (int);
 typedef int (*CheckNodoUguale) (Grafo G,void*);
 typedef int (*ConfrontoElementi) (void*, void*);
 typedef void (*InserisciNodo) (Grafo G,void*);
+typedef void (*CancellaArco) (Grafo G,int,int);
+typedef void (*DeallocaElemento) (void*);
+typedef void  (*CancellaNodo) (Grafo G,int);
+typedef void (*GrafoTrasposto) (Grafo G);
+typedef void *(*CopiaDato) (void *);
 
 struct struttura_gestione_grafo
 {
@@ -35,6 +40,11 @@ struct struttura_gestione_grafo
     CheckNodoUguale check_nodo_uguale;
     ConfrontoElementi confronto_elementi;
     InserisciNodo inserisci_nodo;
+    CancellaArco cancella_arco;
+    DeallocaElemento dealloca_elemento;
+    CancellaNodo cancella_nodo;
+    GrafoTrasposto grafo_trasposto;
+    CopiaDato copia_dato;
 };
 
 
@@ -73,6 +83,8 @@ Grafo F_alloca_grafo(Grafo G);
 Grafo F_crea_grafo(Grafo G);
 void F_aggiungi_arco(Grafo G);
 void F_aggiungi_vertice(Grafo G);
-
+void F_cancella_arco(Grafo G);
+void F_cancella_vertice(Grafo G);
+void F_grafo_trasposto(Grafo G);
 
 #endif //INC_1_L_GRAFO_H
