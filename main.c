@@ -3,10 +3,6 @@
 
 
 int main() {
-
-
     F_start();
-
-
     return 0;
 }
