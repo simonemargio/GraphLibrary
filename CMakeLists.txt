@@ -8,10 +8,8 @@ set(SOURCE_FILES
         L_Coda.h
         L_Grafo.c
         L_Grafo.h
-        L_Stack.c
-        L_Stack.h
         L_Utility.c
         L_Utility.h
-        main.c)
+        main.c L_Parser.c L_Parser.h)
 
 add_executable(5__Esercizio_5___Grafi ${SOURCE_FILES})

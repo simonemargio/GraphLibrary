@@ -2,30 +2,33 @@
 // Created by ika on 8/13/2017.
 //
 
-#include "L_Grafo.h"
 #include <stdio.h>
+#include "L_Grafo.h"
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
 #include <time.h>
-#include "L_Stack.h"
+#include "L_Parser.h"
 #include "L_Utility.h"
 #include "L_Grafo.h"
 
 
+
+/* Funzione principale */
 void F_start()
 {
+    /* Generazione seme casuale */
     srand((unsigned)time(NULL));
     int menu_principale=-1,scelta=0;
     Grafo G = NULL;
-    G=F_alloca_grafo(G);
-    G=F_info_grafo(G);
-    G=F_crea_grafo(G);
-    G->stampa_generale(G);
+    G=F_alloca_grafo(G);    // Funzione per l'allocazione della struttura principale per la gestione del grafo
+    G=F_info_grafo(G);      // Funzione per l'inserimento delle proprieta' del grafo
+    G=F_crea_grafo(G);      // Funzione per la creazione della struttura grafo
+    G->stampa_generale(G);  // Stampa del grafo creato. Richiama: F_stampa_lista/matrice_adiacenza
 
     do
     {
-        scelta=F_menu_principale();
+        scelta=F_menu_principale(); // Stampa menu' principale
         switch (scelta)
         {
             case 1: // Inserisci vertice
@@ -47,24 +50,41 @@ void F_start()
             case 5: // Grafo trasposto
                     F_grafo_trasposto(G);
                 break;
+
             case 6: // Visita in ampiezza
                     F_visita_ampiezza(G);
                 break;
+
+            case 7: // Visita in profondita'
+                    F_visita_profondita(G);
+                break;
+
             case 8: // Percorso tra due vertici
                     F_stampa_percorso(G);
                 break;
+
             case 9:
-                scelta=F_menu_avanzato(G->listmatr);
+                scelta=F_menu_avanzato(G->listmatr); // Stampa secondo menu'
                 switch (scelta)
                 {
+                    case 1: // Aciclicità
+                            F_grafo_ciclo(G);
+                        break;
                     case 2: // Grafo casuale
                             F_grafo_casuale(G);
                         break;
+
                     case 3: // Converti grafo
                         F_converti_grafo(G);
                         break;
+
+                    case 4: // Leggi scrivi grafo file
+                        G=F_leggi_scrivi_grafo(G);
+                        break;
+
                     case 0:
                         break;
+
                     default:
                         puts("\nScelta non valida! Ritorno al menu'");
                 }
@@ -73,18 +93,23 @@ void F_start()
             case 0:
                 menu_principale=0;
                 break;
+
             default:
                 puts("\nScelta non valida! Riprovare");
                 break;
-
-
         }
 
       if(menu_principale!=0)  G->stampa_generale(G);
     }while (menu_principale!=0);
-    system("pause");
+
+    /* Deallocazione struttura */
+    if(G!=NULL)
+        if(G->struttura!=NULL)
+            G->dealloca_grafo(G->struttura,G);
+
 }
 
+/* Funzione di stampa del menu' principale */
 int F_menu_principale()
 {
     int scelta = 0;
@@ -106,6 +131,7 @@ int F_menu_principale()
     return scelta;
 }
 
+/* Funzione di stampa del secondo menu' */
 int F_menu_avanzato(int listmatr)
 {
     int scelta = 0;
@@ -114,7 +140,7 @@ int F_menu_avanzato(int listmatr)
     puts("2] Genera un grafo casuale");
     if(listmatr==1) puts("3] Converti il grafo in una rappresentazione matriciale");
     else    puts("3] Converti il grafo in una rapparesentazione a lista");
-    puts("4] Lettura scrittura bla bla");
+    puts("4] Leggi/scrivi grafo su file");
     puts("");
     puts("0] Torna indietro");
     printf("\nSeleziona tramite valore numerico:");
@@ -123,13 +149,38 @@ int F_menu_avanzato(int listmatr)
     return scelta;
 }
 
+/* Funzione di stampa per la gestione di un grafo da file */
+int F_menu_leggi_scrivi_file()
+{
+    int scelta=0;
+
+    puts("Operazione da svolgere:");
+    puts("1] Scrivi il grafo corrente su file");
+    puts("2] Leggi un grafo da file");
+    printf("\nSeleziona tramite valore numerico:");
+    scelta=F_seleziona(1,'1','2',0);
+
+    return scelta;
+}
+
+/* Funzione per la lettura o scrittura di un grafo da file */
+Grafo F_leggi_scrivi_grafo(Grafo G)
+{
+    int scelta=F_menu_leggi_scrivi_file(); // Menu' di scelta
+    if(scelta==1 && G->struttura!=NULL)  F_salva_grafo(G);  // Salva le informazioni del grafo su file
+    else G=F_leggi_grafo(G);    // Legge grafo da file
+
+    return G;
+}
+
+/* Funzione per l'inserimento delle proprieta' del grafo */
 Grafo F_info_grafo(Grafo G)
 {
     int list_matr=0, tipo_dato=0, num_elem=0,peso=0;
 
     list_matr=F_list_matr();        // Scelta se lista adj o matrice
     tipo_dato=F_tipo_dato_grafo();  // Tipo di dato dei nodi
-    peso=F_grafo_pesato();
+    peso=F_grafo_pesato();          // Scelta se pasato o meno
     num_elem=F_num_elem_grafo();    // Numero di elementi
 
     F_aggiungi_info(G,list_matr,tipo_dato,num_elem,peso); // Gestisce tutte le routine/callback
@@ -137,7 +188,7 @@ Grafo F_info_grafo(Grafo G)
     return G;
 }
 
-
+/* Richiesta dell'aggiunta del peso al grafo */
 int F_grafo_pesato()
 {
     int scelta=0;
@@ -149,9 +200,9 @@ int F_grafo_pesato()
     scelta=F_seleziona(1,'1','2',0);
 
     return scelta;
-
 }
 
+/* Richiesta del tipo di grafo da usare */
 int F_list_matr()
 {
     int scelta=0;
@@ -165,7 +216,7 @@ int F_list_matr()
     return scelta;
 }
 
-
+/* Richiesta del tipo di dato contenuto nel grafo */
 int F_tipo_dato_grafo()
 {
     int scelta=0;
@@ -181,6 +232,7 @@ int F_tipo_dato_grafo()
     return scelta;
 }
 
+/* Richiesta del numero di elementi del grafo */
 int F_num_elem_grafo()
 {
     int scelta=0;
@@ -191,6 +243,7 @@ int F_num_elem_grafo()
     return scelta;
 }
 
+/* Richiesta del tipo di grafo da generare */
 int F_scelta_grafo_casuale()
 {
     int scelta=0;
@@ -204,6 +257,7 @@ int F_scelta_grafo_casuale()
     return scelta;
 }
 
+/* Richiesta del tipo di visita da effetturare */
 int F_scelta_visita_grafo()
 {
     int scelta=0;
@@ -217,57 +271,61 @@ int F_scelta_visita_grafo()
     return scelta;
 }
 
+/* Funzione di inserimento di tutte le informazioni e callback per la gestione del grafo */
 Grafo F_aggiungi_info(Grafo G,int list_matr,int tipo_dato,int num_elem,int peso)
 {
-    G->nsize=num_elem;
-    G->infpeso=peso;
-    G->listmatr=list_matr;
-    G->tipodato=tipo_dato;
-    G->pred=NULL;
+    G->nsize=num_elem;      // Numero di nodi presenti
+    G->infpeso=peso;        // 1=Grafo non pesato - 2=Grafo pesato
+    G->listmatr=list_matr;  // 1=Lista Adj - 2=Matrice Adj
+    G->tipodato=tipo_dato;  // 1=Int - 2=Float - 3=Char - 4=String
+    G->pred=NULL;           // Array predecessori
+    G->ciclo=0;             // 0=Ciclo presente - !0=No ciclo
 
     switch (list_matr)
     {
-        case 1: // Lista
-            G->tipo_struttura=F_crea_lista_adj;
-            G->inserisci_arco=F_aggiungi_arco_lista;
-            G->seleziona_nodo=F_seleziona_nodo_lista;
-            G->stampa_generale=F_stampa_lista_adiacenza;
-            G->check_nodo_uguale=F_check_nodo_uguale_lista;
-            G->inserisci_nodo=F_inserisci_nodo_lista;
-            G->cancella_arco=F_cancella_arco_lista;
-            G->cancella_nodo=F_cancella_nodo_lista;
-            G->grafo_trasposto=F_trasposto_lista;
-            G->dealloca_grafo=F_dealloca_grafo_lista;
-            G->converti_grafo=F_lista_a_matrice;
-            G->inizializza_bfs=F_inizializza_bfs_lista;
-            G->vertice_adiacente=F_vertice_adiacente_lista;
-            G->check_color=F_controllo_colore_bfs_lista;
-            G->change_color=F_cambia_colore_bfs_lista;
-            G->stampa_bfs=F_stampa_bfs_lista;
-            G->predecessore_bfs=F_predecessoreBfs_lista;
-            G->preleva_nodo=F_preleva_nodo_lista;
-            G->indice_nodo=F_trova_indice_elem_lista;
+        case 1: // Lista Adj
+            G->tipo_struttura=F_crea_lista_adj;                 // Funzione creazione della lista di Adj
+            G->inserisci_arco=F_aggiungi_arco_lista;            // Funzione per l'aggiunta di un arco nella lista
+            G->seleziona_nodo=F_seleziona_nodo_lista;           // Funzione per selezionare un elemento del grafo
+            G->stampa_generale=F_stampa_lista_adiacenza;        // Funzione per la stampa generica del grafo
+            G->check_nodo_uguale=F_check_nodo_uguale_lista;     // Funzione per la verifica dell'esistenza di un nodo
+            G->inserisci_nodo=F_inserisci_nodo_lista;           // Funzione per l'inserimento di un nodo nella lista
+            G->cancella_arco=F_cancella_arco_lista;             // Funzione per la cancellazione di un arco
+            G->cancella_nodo=F_cancella_nodo_lista;             // Funzione per la cancellazione di un elemento nel grafo
+            G->grafo_trasposto=F_trasposto_lista;               // Funzione per effetturare il trasposto del grafo lista
+            G->dealloca_grafo=F_dealloca_grafo_lista;           // Funzione per deallocare il grafo
+            G->converti_grafo=F_lista_a_matrice;                // Funzione per convertire il grafo in una matrice di Adj
+            G->inizializza_bfsdfs=F_inizializza_bfsdfs_lista;   // Funzione di inizializzazione dell'array colore prima delle visite
+            G->vertice_adiacente=F_vertice_adiacente_lista;     // Funzione per la ricerca del vertice adiacente
+            G->check_color=F_controllo_colore_bfs_lista;        // Funzione per la verifica del colore di un nodo
+            G->change_color=F_cambia_colore_bfs_lista;          // Funzione per cambiare colore di un nodo
+            G->stampa_bfsdfs=F_stampa_bfs_lista;                // Funzione di stampa del grafo per la visita BFS
+            G->predecessore_bfsdfs=F_predecessoreBfs_lista;     // Funzione di gestione dell'array pred
+            G->preleva_nodo=F_preleva_nodo_lista;               // Funzione si selezione di un nodo di una lista
+            G->indice_nodo=F_trova_indice_elem_lista;           // Funzione di selezione dell'indice di un nodo (usato per pred)
+            G->verticedfs=F_verticeDfs_lista;                   // Funzione di visita in profondita' (richiama DFS_VISIT)
             break;
-        case 2: // Matrice
-            G->tipo_struttura=F_crea_matrice_adj;
-            G->inserisci_arco=F_aggiungi_arco_matrice;
-            G->seleziona_nodo=F_seleziona_nodo_matrice;
-            G->stampa_generale=F_stampa_matrice_adiacenza;
-            G->check_nodo_uguale=F_check_nodo_uguale_matrice;
-            G->inserisci_nodo=F_inserisci_nodo_matrice;
-            G->cancella_arco=F_cancella_arco_matrice;
-            G->cancella_nodo=F_cancella_nodo_matrice;
-            G->grafo_trasposto=F_trasposto_matrice;
-            G->dealloca_grafo=F_dealloca_grafo_matrice;
-            G->converti_grafo=F_matrice_a_lista;
-            G->inizializza_bfs=F_inizializza_bfs_matrice;
-            G->vertice_adiacente=F_vertice_adiacente_matrice;
-            G->check_color=F_controllo_colore_bfs_matrice;
-            G->change_color=F_cambia_colore_bfs_matrice;
-            G->stampa_bfs=F_stampa_bfs_matrice;
-            G->predecessore_bfs=F_predecessoreBfs_matrice;
-            G->preleva_nodo=F_preleva_nodo_matrice;
-            G->indice_nodo=F_trova_indice_elem_matrice;
+        case 2: // Matrice di Adj
+            G->tipo_struttura=F_crea_matrice_adj;               // Funzione creazione della matrice di Adj
+            G->inserisci_arco=F_aggiungi_arco_matrice;          // Funzione per l'aggiunta di un arco nella matrice
+            G->seleziona_nodo=F_seleziona_nodo_matrice;         // Funzione per selezionare un elemento del grafo
+            G->stampa_generale=F_stampa_matrice_adiacenza;      // Funzione per la stmapa generale della matrice di Adj
+            G->check_nodo_uguale=F_check_nodo_uguale_matrice;   // Funzione per la verifica dell'esistenza di un nodo
+            G->inserisci_nodo=F_inserisci_nodo_matrice;         // Funzione per l'inserimento di un nodo nella matrice
+            G->cancella_arco=F_cancella_arco_matrice;           // Funzione per la cancellazione di un arco nella matrice
+            G->cancella_nodo=F_cancella_nodo_matrice;           // Funzione per la cancellazione di un nodo nella matrice
+            G->grafo_trasposto=F_trasposto_matrice;             // Funzione per effettuare il trasposto della matrice
+            G->dealloca_grafo=F_dealloca_grafo_matrice;         // Funzione per deallocare il grafo
+            G->converti_grafo=F_matrice_a_lista;                // Funzione per convertire la matrice in una lista di Adj
+            G->inizializza_bfsdfs=F_inizializza_bfsdfs_matrice; // Funzione di inizializzazione dell'array colore prima delle visite
+            G->vertice_adiacente=F_vertice_adiacente_matrice;   // Funzione per la ricerca dei vertici adiacenti
+            G->check_color=F_controllo_colore_bfs_matrice;      // Funzione per il controllo del colore per la visita BFS
+            G->change_color=F_cambia_colore_bfs_matrice;        // Funzione per il cambio del colore
+            G->stampa_bfsdfs=F_stampa_bfs_matrice;              // Funzione per la stampa del grafo nella visita BFS
+            G->predecessore_bfsdfs=F_predecessoreBfs_matrice;   // Funzione di gestione dell'array pred
+            G->preleva_nodo=F_preleva_nodo_matrice;             // Funzione per prelevare un nodo dalla matrice
+            G->indice_nodo=F_trova_indice_elem_matrice;         // FUnzione di selezione dell'indice di un nodo (usato per pred)
+            G->verticedfs=F_verticeDfs_matrice;                 // Funzione di visita in profondita'
             break;
         default:
             puts("Error: selezione tipologia di struttura non valida!\n");
@@ -276,6 +334,14 @@ Grafo F_aggiungi_info(Grafo G,int list_matr,int tipo_dato,int num_elem,int peso)
 
     switch (tipo_dato)
     {
+        /* Gestione degli elementi
+         * F_crea_//; Creazione randomica del tipo di elemento
+         * F_stampa_//: Stampa del tipo dell'elemento
+         * F_confronto_//: Funzione per il confronto di elementi dello stesso tipo
+         * F_dealloca_//: Deallocazione del singolo elemento
+         * F_copia_dato_//: Copia del dato (memcpy)
+         * F_salva_elem_//: Per la gestione del file, ne salva l'elemento
+        * */
         case 1: // Intero
             G->tipo_elemento=F_crea_intero;
             G->stampa_elemento=F_stampa_intero;
@@ -283,6 +349,7 @@ Grafo F_aggiungi_info(Grafo G,int list_matr,int tipo_dato,int num_elem,int peso)
             G->confronto_elementi=F_confronto_interi;
             G->dealloca_elemento=F_dealloca_intero;
             G->copia_dato=F_copia_dato_intero;
+            G->salvaelemgrafo=F_salva_elem_int;
             break;
 
         case 2: // Float
@@ -292,6 +359,7 @@ Grafo F_aggiungi_info(Grafo G,int list_matr,int tipo_dato,int num_elem,int peso)
             G->confronto_elementi=F_confronto_float;
             G->dealloca_elemento=F_dealloca_float;
             G->copia_dato=F_copia_dato_float;
+            G->salvaelemgrafo=F_salva_elem_float;
             break;
         case 3: // Carattere
             G->tipo_elemento=F_crea_carattere;
@@ -300,6 +368,7 @@ Grafo F_aggiungi_info(Grafo G,int list_matr,int tipo_dato,int num_elem,int peso)
             G->confronto_elementi=F_confronto_carattere;
             G->dealloca_elemento=F_dealloca_carattere_stringa;
             G->copia_dato=F_copia_dato_carattere;
+            G->salvaelemgrafo=F_salva_elem_char;
             break;
         case 4: // Stringa
             G->tipo_elemento=F_crea_stringa;
@@ -308,6 +377,7 @@ Grafo F_aggiungi_info(Grafo G,int list_matr,int tipo_dato,int num_elem,int peso)
             G->confronto_elementi=F_confronto_stringa;
             G->dealloca_elemento=F_dealloca_carattere_stringa;
             G->copia_dato=F_copia_dato_stringa;
+            G->salvaelemgrafo=F_salva_elem_string;
             break;
 
         default:
@@ -330,14 +400,11 @@ int F_seleziona(int dim,char minimo,char massimo,int escludi)
      * */
     char tmp[dim],c='*',*ptr;
     int intero_preso=0,i=0,flag=0;
-    //fflush(stdin);
-    //fseek(stdin,0,SEEK_END);
 
     do
     {
         while( (c= (char) getchar()) != '\n' && i<dim && c != EOF )
         {
-            printf("\n%c<-\n\n",c);
             if(c>=minimo && c<=massimo)
             {
                 tmp[i]=c;
@@ -346,7 +413,6 @@ int F_seleziona(int dim,char minimo,char massimo,int escludi)
 
         }
         intero_preso = (int) strtol(tmp, &ptr, 10);
-        //sscanf(tmp,"%d",&intero_preso);
 
         if(intero_preso<=escludi)
         {
@@ -365,28 +431,32 @@ int F_seleziona(int dim,char minimo,char massimo,int escludi)
 
     int *elemento=malloc(sizeof(int));
     memcpy(elemento,&intero_preso,sizeof(int));
-   // printf("\nNumero preso:%d",intero_preso);
+
     return intero_preso;
 }
 
+/* Funzione per la creazione della struttura principale di tipo lista di Adj */
 Grafo F_crea_matrice_adj(Grafo G)
 {
+    // Allocazione della struttura della matrice e dell'array che contiene i nodi del grafo
     M struttura_matrice = (struct struttura_elemento_matrice *)malloc(sizeof(struct struttura_elemento_matrice));
     Nm array_nodo_matrice = (struct struttura_elemento_array_nodo_matrice *)malloc(G->nsize* sizeof(struct struttura_elemento_array_nodo_matrice));
-    array_nodo_matrice->extra=NULL;
+    array_nodo_matrice->extra=NULL; // Generica: usata per collegare l'informazione sul colore del singolo nodo
+
     int i=0;
     for(i=0;i<G->nsize;i++)
     {
+        // Creazione randomica dell'elemento e inserimento nell'array
         void *elem=G->tipo_elemento();
         array_nodo_matrice[i].nodo=elem;
-     //   array_nodo_matrice[i].ptrPeso=NULL;
     }
-    struttura_matrice->nodo=array_nodo_matrice;
+    struttura_matrice->nodo=array_nodo_matrice; // Inserimento dell'array
 
-    float **matrice =(float **)malloc(G->nsize* sizeof(float *));
+    float **matrice =(float **)malloc(G->nsize* sizeof(float *)); // Creazione della matrice
     for(i=0;i<G->nsize;i++)
         matrice[i]=(float *)malloc(G->nsize* sizeof(float *));
 
+    // Salvataggio delle informazioni e inizializzazione della matrice
     struttura_matrice->matrice=matrice;
     G->struttura=struttura_matrice;
     F_inizializza_matrice(G);
@@ -394,6 +464,7 @@ Grafo F_crea_matrice_adj(Grafo G)
     return G;
 }
 
+/* Funzione di inizializzazione della matrice */
 void F_inizializza_matrice(Grafo G)
 {
     int i=0,j=0;
@@ -406,6 +477,7 @@ void F_inizializza_matrice(Grafo G)
         }
 }
 
+/* Funzione di stampa generica della matrice di Adj */
 void F_stampa_matrice_adiacenza(Grafo G)
 {
     int i=0,j=0;
@@ -423,24 +495,24 @@ void F_stampa_matrice_adiacenza(Grafo G)
     {
        if(i!=0) printf(" [%d]:",i);
         else    printf("[%d]:",i);
-        G->stampa_elemento(nodi_matrice[i].nodo);
+        G->stampa_elemento(nodi_matrice[i].nodo); // Richiama: 
     }
 
     puts("\n\nMatrice di riferimento:");
     for(i=0;i<G->nsize;i++) {
             printf("[%d]:\t",i);
-        //if(i!=0) puts("");
+
         for (j = 0; j < G->nsize; j++) {
             if(matrice[i][j]>0 || matrice[i][j]<0)
                printf("|1|\t");
             else printf("|0|\t");
-            // printf("|%f|\t", matrice[i][j]);
         }
         puts("");
     }
     puts("\n");
 }
 
+/* Stampa il peso di un grafo in una matrice di Adj */
 void F_stampa_peso_matrice_adiacenza(Grafo G)
 {
     int controllo = 0,i=0,j=0;
@@ -468,23 +540,24 @@ void F_stampa_peso_matrice_adiacenza(Grafo G)
     if(controllo!=1) puts(" non sono ancora presenti archi con pesi.\n");
 }
 
+/* Creazione della lista di Adj */
 Grafo F_crea_lista_adj(Grafo G)
 {
    L listaAdj = NULL;
    int i=0;
    for(i=0;i<G->nsize;i++)
      {
-       void *elem=G->tipo_elemento();
+       void *elem=G->tipo_elemento(); // Richiama: F_crea_intero/float/carattere/stringa
        listaAdj=F_alloca_elemento_lista(listaAdj, elem);
      }
-     G->struttura=listaAdj;
+     G->struttura=listaAdj; // Inserimento della lista nella struttura principale
 
     return G;
 }
 
+/* Creazione di un elemento della lista di Adj */
 L F_alloca_elemento_lista(L Lista, void *elem)
 {
-
     L newLista=(struct struttura_grafo_lista_adiacenza *)malloc(sizeof(struct struttura_grafo_lista_adiacenza));
     newLista->ptrNext=NULL;
     newLista->ptrArco=NULL;
@@ -496,13 +569,13 @@ L F_alloca_elemento_lista(L Lista, void *elem)
     return newLista;
 }
 
-
+/* Funzione di stampa generica della lista di Adj */
 void F_stampa_lista_adiacenza(Grafo G)
 {
     L Lista=G->struttura;
     int i=0;
     if(G->infpeso==1) puts("\nStruttura della lista: \n[Indice]:[Nodo]->[Nodo]\n");
-    else
+    else // Verifica se il grafo e' pesato
     {
         puts("\nStruttura della lista: \n[Indice]:[Nodo]-(Peso)->[Nodo]\n");
         F_stampa_peso_lista_adiacenza(G);
@@ -510,11 +583,11 @@ void F_stampa_lista_adiacenza(Grafo G)
     while (Lista!=NULL)
     {
         printf("[%d]:",i);
-        G->stampa_elemento(Lista->nodo);
-
+        G->stampa_elemento(Lista->nodo); // Richiama: F_stampa_intero/float/carattere/stringa
         L Arco = Lista;
+
         if(Arco->ptrArco == NULL) puts("");
-        else
+        else // Stampa degli archi
         {
             Arco=Arco->ptrArco;
             printf("-->");
@@ -528,12 +601,13 @@ void F_stampa_lista_adiacenza(Grafo G)
             }
         }
 
-         Lista=Lista->ptrNext;
+        Lista=Lista->ptrNext;
         i++;
     }
 
 }
 
+/* Stampa il peso di un grafo in lista di Adj */
 void F_stampa_peso_lista_adiacenza(Grafo G)
 {
     int controllo = 0;
@@ -549,7 +623,7 @@ void F_stampa_peso_lista_adiacenza(Grafo G)
             printf("-");
             printf("(%f)", Lista->ptrArco->ptrPeso->peso);
             printf("->");
-            G->stampa_elemento(Lista->ptrArco->nodo);
+            G->stampa_elemento(Lista->ptrArco->nodo); // Richiama: F_stampa_intero/float/carattere/stringa
 
             L Arco = Lista->ptrArco;
 
@@ -562,7 +636,6 @@ void F_stampa_peso_lista_adiacenza(Grafo G)
                  printf("->");
                  G->stampa_elemento(Arco->ptrArco->nodo);
                  Arco=Arco->ptrArco;
-               //  puts("");
              }
         }
         Lista=Lista->ptrNext;
@@ -582,6 +655,7 @@ void *F_crea_intero()
     return elemento;
 }
 
+/* Genera un valore intero random */
 int F_random_int_range(int min, int max)
 {
     return min + rand() % (max+1 - min);
@@ -613,60 +687,19 @@ void F_stampa_stringa(void *elem)
     printf("[%s]",((char *)elem));
 }
 
-/*void F_aggiungi_arco_lista(Grafo G,int p,int a)
-{
-    L lista = G->struttura;
-    L elem_lista_a = NULL;
-    int i = 0,checkArco=0;
-    void *elem=F_preleva_elem_lista(lista,a);
-    elem_lista_a=F_alloca_elemento_lista(elem_lista_a,elem);
-
-    for(i=0;i<p;i++)
-    {
-        lista=lista->ptrNext;
-    }
-
-    if(lista->ptrArco!=NULL)
-    {
-       if(G->infpeso!=1) {
-           L checkArcoPresente = lista;
-           while (checkArcoPresente != NULL) {
-               if (elem_lista_a->nodo == checkArcoPresente->nodo) {
-                   checkArco = F_cambia_peso_lista(checkArcoPresente,G->stampa_elemento);
-                   free(elem_lista_a);
-                   break;
-               }
-               checkArcoPresente = checkArcoPresente->ptrArco;
-           }
-       }
-      if(!checkArco) elem_lista_a->ptrArco=lista->ptrArco;
-    }
-
-    if(!checkArco) {
-        lista->ptrArco = elem_lista_a;
-
-        if (G->infpeso != 1) // PESATO
-        {
-            float peso = F_inserisci_float(6);
-            P stpeso = F_alloca_struttura_peso(peso);
-            elem_lista_a->ptrPeso = stpeso;
-        }
-    }
-}*/
-
+/* Aggiunta di un arco in una lista di Adj */
 void F_aggiungi_arco_lista(Grafo G,int p,int a)
 {
     L lista = G->struttura;
     L elem_lista_a = NULL;
     int i = 0,checkArco=0;
-    void *elem=F_preleva_elem_lista(lista,a);
-    elem_lista_a=F_alloca_elemento_lista(elem_lista_a,elem);
+    void *elem=F_preleva_elem_lista(lista,a);   // Seleziona l'elemento di arrivo scelto dall'utente
+    elem_lista_a=F_alloca_elemento_lista(elem_lista_a,elem); // Viene creato un nuovo elemento con il punttore allo stesso dato di quello scelto
 
-    for(i=0;i<p;i++)
-    {
+    for(i=0;i<p;i++) // Si porta al nodo di partenza
         lista=lista->ptrNext;
-    }
 
+    /* Verifica se e' gia' presente un arco tra i nodi scelti */
     if(lista->ptrArco!=NULL)
     {
        L checkArcoPresente = lista;
@@ -674,7 +707,7 @@ void F_aggiungi_arco_lista(Grafo G,int p,int a)
        {
            if (elem_lista_a->nodo == checkArcoPresente->nodo)
            {
-               if(G->infpeso!=1)
+               if(G->infpeso!=1) // Viene chiesto all'utente se desidera cambiare il peso
                {
                    checkArco = F_cambia_peso_lista(checkArcoPresente,G->stampa_elemento);
                    free(elem_lista_a);
@@ -687,13 +720,12 @@ void F_aggiungi_arco_lista(Grafo G,int p,int a)
 
         if(!checkArco) elem_lista_a->ptrArco=lista->ptrArco;
     }
-
+    /* Si procede all'inserimento dell'arco solo se non presente */
     if(!checkArco) {
         lista->ptrArco = elem_lista_a;
 
-        if (G->infpeso != 1) // PESATO
+        if (G->infpeso != 1) // Pesato
         {
-           // float peso = F_inserisci_float(6);
             void *pe=F_inserisci_float(6);
             float peso = *((float *)pe);
             P stpeso = F_alloca_struttura_peso(peso);
@@ -702,13 +734,14 @@ void F_aggiungi_arco_lista(Grafo G,int p,int a)
     }
 }
 
+/* Permette all'utente di cambiare il peso di un nodo gia' presente */
 int F_cambia_peso_lista(L elem,StampaElemento stampa_elemento)
 {
     printf("\nE' gia' presente un arco pesato che arriva al nodo:");
     stampa_elemento(elem->nodo);
     int scelta = F_menu_scelta_cambio_peso();
 
-    if(scelta==1) {// elem->ptrPeso->peso= F_inserisci_float(6);
+    if(scelta==1) { // Si cambia il peso
         void *p=F_inserisci_float(6);
         float peso=*((float *)p);
         elem->ptrPeso->peso=peso;
@@ -719,6 +752,7 @@ int F_cambia_peso_lista(L elem,StampaElemento stampa_elemento)
     return 1;
 }
 
+/* Menu' di scelta per il cambio del peso di un arco */
 int F_menu_scelta_cambio_peso()
 {
     int scelta=0;
@@ -732,6 +766,7 @@ int F_menu_scelta_cambio_peso()
     return scelta;
 }
 
+/* Alloca la struttura per gestire il peso di un arco */
 P F_alloca_struttura_peso(float peso)
 {
     P new_elem = (struct struttura_grafo_pesato *)malloc(sizeof(struct struttura_grafo_pesato));
@@ -740,6 +775,7 @@ P F_alloca_struttura_peso(float peso)
     return new_elem;
 }
 
+/* Seleziona un nodo della lista di Adj in base all'indice passato */
 void * F_preleva_elem_lista(L lista,int elemento)
 {
     int i=0;
@@ -753,15 +789,16 @@ void * F_preleva_elem_lista(L lista,int elemento)
     return elem;
 }
 
+/* Aggiunge un arco tra due nodi di una matrice di Adj */
 void F_aggiungi_arco_matrice(Grafo G,int p,int a)
 {
     M matrice = G->struttura;
     Nm nodi_matrice = matrice->nodo;
     int scelta = 0;
 
-    if(G->infpeso!=1) // PESATO
+    if(G->infpeso!=1) // Pesato
     {
-        if(matrice->matrice[p][a]>0 || matrice->matrice[p][a]<0)
+        if(matrice->matrice[p][a]>0 || matrice->matrice[p][a]<0) // Arco gia' presente
         {
             printf("\nE' gia' presente un arco pesato che arriva al nodo: ");
             G->stampa_elemento(nodi_matrice[a].nodo);
@@ -769,18 +806,16 @@ void F_aggiungi_arco_matrice(Grafo G,int p,int a)
         }
 
         if(scelta==1 || matrice->matrice[p][a]==0) {
-          //  float peso = F_inserisci_float(6);
             void *pe=F_inserisci_float(6);
             float peso=*((float *)pe);
             matrice->matrice[p][a] = peso;
         }
     }
     else
-    matrice->matrice[p][a]=1;
+    matrice->matrice[p][a]=1; // Inserimento in grafo non pesato
 }
 
-
-
+/* Richiesta all'utente di selezionare un nodo della lista di Adj */
 int F_seleziona_nodo_lista(Grafo G)
 {
     printf("\nInserisci l'indice dell'elemento che vuoi selezionare:");
@@ -789,6 +824,7 @@ int F_seleziona_nodo_lista(Grafo G)
     return indice;
 }
 
+/* Richiesta all'utente di selezionare un nodo della matrice di Adj */
 int F_seleziona_nodo_matrice(Grafo G)
 {
     printf("\nInserisci l'indice dell'elemento che vuoi selezionare:");
@@ -797,11 +833,12 @@ int F_seleziona_nodo_matrice(Grafo G)
     return indice;
 }
 
+/* Funzione che richiede all'utente di inserire l'indice del nodo su cui effettuare le operazioni */
 int F_seleziona_indice(int dim, int nsize)
 {
     char tmp[dim],c='*',*ptr;
     int intero_preso=0,i=0,flag=0;
-    //fflush(stdin);
+
     for(i=0;i<dim;i++)
         tmp[i]='*';
     i=0;
@@ -810,7 +847,6 @@ int F_seleziona_indice(int dim, int nsize)
     {
         while( (c= (char) getchar()) != '\n' && i<dim && c != EOF )
         {
-            printf("\n%c<-\n\n",c);
             if(c>='0' && c<='9')
             {
                 tmp[i]=c;
@@ -818,12 +854,8 @@ int F_seleziona_indice(int dim, int nsize)
             }
 
         }
-        for(i=0;i<dim;i++)
-            printf("<<%c>>",tmp[i]);
 
         intero_preso = (int) strtol(tmp, &ptr, 10);
-       // sscanf(tmp,"%d",&intero_preso);
-        printf("\nInteroo: |%d|\n",intero_preso);
         if(intero_preso<0 || intero_preso > nsize)
         {
             printf("Valore non corretto\nInserisci di nuovo:");
@@ -847,11 +879,9 @@ int F_seleziona_indice(int dim, int nsize)
 /* Funzione per l'inserimento da parte dell'utente di un dato intero */
 void *F_inserisci_intero(int dim)
 {
-    /* DICHIARAZIONI VARIABILI */
-    printf("\n>>%d<<\n",dim);
     char tmp[dim],c='*',*ptr;
     int intero_preso=0,i=0;
-    //fflush(stdin);
+
 
     for(i=0;i<dim;i++)
         tmp[i]='*';
@@ -868,82 +898,21 @@ void *F_inserisci_intero(int dim)
             }
 
         }
-
-    intero_preso = (int) strtol(tmp, &ptr, 10);  // tmp=dove metto str=dovrebbe essere i caratteri sartati in mezzo, 10 è la base
-
+    intero_preso = (int) strtol(tmp, &ptr, 10);
     int *elemento=malloc(sizeof(int));
     memcpy(elemento,&intero_preso,sizeof(int));
-   // printf("\nHO PRESO: ||%d||int - ho scartato |%s|\n",intero_preso,ptr);
+
     return elemento;
 }
-
-
 
 /* Funzione per l'inserimento da parte dell'utente di un dato float */
-/*float F_inserisci_float(int dim)
-{
-
-    char tmp[dim],c='*';
-    int i=0;
-    float ftemp;
-   // fflush(stdin);
-
-    printf("Aggiunta del peso.\nVerra' chiesto successivamente se si vuole il valore in negativo!\nInserire la parte intera:");
-
-
-    while( (c= (char) getchar()) != '\n' && i<dim && c != EOF )
-    {
-        if(c>='0' && c<='9')
-        {
-            tmp[i]=c;
-            i++;
-        }
-
-    }
-
-    tmp[i]='.';
-    i++;
-
-    if(i<dim)
-    {
-
-
-        printf("Parte decimale:");
-
-        while( (c= (char) getchar()) != '\n' && i<dim && c != EOF )
-        {
-            if(c>='0' && c<='9')
-            {
-                tmp[i]=c;
-                i++;
-            }
-
-        }
-        tmp[i]='\0';
-    }
-
-
-   // sscanf(tmp,"%f",&ftemp);
-    ftemp=strtof(tmp,NULL);
-    void *elemento=malloc(sizeof(float));
-    memcpy(elemento,&ftemp,sizeof(float));
-    printf("\nSi vuole esprimere il valore: [%f] in negativo?\n1-Si\n2-No\nSeleziona tramite valore numerico:",ftemp);
-    int scelta = F_seleziona(1,'1','2',0);
-    if(scelta==1) ftemp=F_ritorna_negativo(ftemp);
-    printf("\nOK RITORNO |%f|\n",ftemp);
-    return ftemp;
-}*/
-
 void *F_inserisci_float(int dim)
 {
-    /* DICHIARAZIONE VARIABILI */
     char tmp[dim],c='*';
     int i=0;
     float ftemp;
-    // fflush(stdin);
 
     printf("Aggiunta del peso.\nVerra' chiesto successivamente se si vuole il valore in negativo!\nInserire la parte intera:");
-
 
     while( (c= (char) getchar()) != '\n' && i<dim && c != EOF )
     {
@@ -960,8 +929,6 @@ void *F_inserisci_float(int dim)
 
     if(i<dim)
     {
-
-
         printf("Parte decimale:");
 
         while( (c= (char) getchar()) != '\n' && i<dim && c != EOF )
@@ -976,8 +943,6 @@ void *F_inserisci_float(int dim)
         tmp[i]='\0';
     }
 
-
-    // sscanf(tmp,"%f",&ftemp);
     ftemp=strtof(tmp,NULL);
     void *elemento=malloc(sizeof(float));
 
@@ -985,28 +950,26 @@ void *F_inserisci_float(int dim)
     int scelta = F_seleziona(1,'1','2',0);
     if(scelta==1) ftemp=F_ritorna_negativo(ftemp);
     memcpy(elemento,&ftemp,sizeof(float));
-    printf("\nOK RITORNO |%f|\n",*((float *)elemento));
+
     return elemento;
 }
 
-
-
-
+/* Ritorno il valore float in negativo */
 float F_ritorna_negativo(float num)
 {
     num=(num)*(-1);
     return num;
 }
 
-int F_check_nodo_uguale_lista(Grafo G,void *elem)  // 0 non c'è . 1 c'è
+/* Verifica se e' gia' presente un nodo con il medesimo dato nella lista di Adj */
+int F_check_nodo_uguale_lista(Grafo G,void *elem)
 {
     int controllo = 0,i=0;
     L lista = G->struttura;
 
     while (lista!=NULL)
     {
-        printf("\n||%d|| ||%d||\n",*((int *)elem),*((int*)lista->nodo));
-        i = G->confronto_elementi(lista->nodo,elem);
+        i = G->confronto_elementi(lista->nodo,elem); // Richiama: F_confronto_interi/float/carattere/stringa
         if(i==0)
         {
             controllo=1;
@@ -1016,9 +979,10 @@ int F_check_nodo_uguale_lista(Grafo G,void *elem)  // 0 non c'è . 1 c'è
         lista=lista->ptrNext;
     }
 
-    return controllo;
+    return controllo; // Return 0=Nodo uguale non presente. 1=Presente
 }
 
+/* Verifica se e' gia' presente un nodo con il medesimo dato nella matrice di Adj */
 int F_check_nodo_uguale_matrice(Grafo G,void *elem)
 {
     int i=0,controllo=0,j=0;
@@ -1027,7 +991,7 @@ int F_check_nodo_uguale_matrice(Grafo G,void *elem)
 
     for(i=0;i<G->nsize;i++)
         {
-            j = G->confronto_elementi(nodo_matrice[i].nodo,elem);
+            j = G->confronto_elementi(nodo_matrice[i].nodo,elem);  // Richiama: F_confronto_interi/float/carattere/stringa
             if(j==0)
             {
                 controllo=1;
@@ -1035,7 +999,7 @@ int F_check_nodo_uguale_matrice(Grafo G,void *elem)
             }
         }
 
-    return controllo;
+    return controllo; // Return 0=Nodo uguale non presente. 1=Presente
 }
 
 /* Funzione per il confronto di elementi interi */
@@ -1122,51 +1086,49 @@ int F_confronto_stringa(void *stringa,void *stringa_nodo)
     return controllo;
 }
 
+/* Inserimento di un nuovo nodo in una lista di Adj */
 void F_inserisci_nodo_lista(Grafo G,void *elem)
 {
     L Lista = G->struttura;
-
     L NewLista = F_alloca_elemento_lista(Lista,elem);
-
-    G->nsize=G->nsize+1;
+    G->nsize=G->nsize+1; // Mantiene l'informazione del mumero dei nodi presenti
     G->struttura=NewLista;
 }
 
+/* Inserimento di un nuovo nodo in una matrice di Adj */
 void F_inserisci_nodo_matrice(Grafo G,void *elem)
 {
     int i=0,new_size=(G->nsize+1);
     M struttura_matrice = G->struttura;
     float **matrice_old=struttura_matrice->matrice;
 
+    /* Creazione della nuova matrice di Adj */
     float **matrice_new=(float **)malloc(new_size* sizeof(float *));
     for(i=0;i<new_size;i++)
           matrice_new[i]=(float *)malloc(new_size* sizeof(float *));
 
+    /* Copia delle informazioni della vecchia matrice */
     F_copia_matrice(matrice_new,matrice_old,G->nsize);
-
-
     Nm nodi_matrice = struttura_matrice->nodo;
     Nm array_nodo_matrice = (struct struttura_elemento_array_nodo_matrice *)realloc(nodi_matrice,new_size* sizeof(struct struttura_elemento_array_nodo_matrice));
     array_nodo_matrice->extra=NULL;
     array_nodo_matrice[G->nsize].nodo=elem;
 
-
-    // DEALLOCARE
+    /* Deallocazione matrice */
     for(i=0;i<G->nsize;i++)
         free(matrice_old[i]);
-
     free(matrice_old);
 
+    /* Inserimento della nuova matrice nella struttura principale */
     G->nsize=new_size;
     struttura_matrice->nodo=array_nodo_matrice;
     struttura_matrice->matrice=matrice_new;
     G->struttura=struttura_matrice;
 }
 
-
+/* Inizializza la nuova matrice e ne copia le informazioni degli archi dalla vecchia */
 void F_copia_matrice (float ** destmat, float ** srcmat,int dim)
 {
-   // memcpy(destmat,srcmat, dim*dim*sizeof(float));
     int i=0,j=0;
 
     for(i=0;i<dim+1;i++)
@@ -1178,6 +1140,7 @@ void F_copia_matrice (float ** destmat, float ** srcmat,int dim)
             destmat[i][j] = srcmat[i][j];
 }
 
+/* Inizializza la nuova matrice e ne copia le informazioni degli archi dalla vecchia (usata per il trasposto) */
 void F_copia_matrice_identica (float ** destmat, float ** srcmat,int dim)
 {
     int i=0,j=0;
@@ -1192,6 +1155,7 @@ void F_copia_matrice_identica (float ** destmat, float ** srcmat,int dim)
 
 }
 
+/* Eliminazione di un arco nella lista di Adj */
 void F_cancella_arco_lista(Grafo G,int p,int a)
 {
     L Lista=G->struttura;
@@ -1212,7 +1176,7 @@ void F_cancella_arco_lista(Grafo G,int p,int a)
     while(Nodo_p!=NULL)
     {
         if(Nodo_p->ptrArco!=NULL) {
-            c = G->confronto_elementi(Nodo_p->ptrArco->nodo, Elem_a);
+            c = G->confronto_elementi(Nodo_p->ptrArco->nodo, Elem_a); // Richiama: F_confronto_interi/float/carattere/stringa
 
             if (c == 0) // Trovato
             {
@@ -1223,7 +1187,7 @@ void F_cancella_arco_lista(Grafo G,int p,int a)
                 } else {
                     Nodo_p->ptrArco = NULL;
                 }
-                free(Tmp); // Non si deve deallocare l'eleemnto in quando sono puntatori alla struttura principale
+                free(Tmp); // Non si deve deallocare l'elemento in quando sono puntatori alla struttura principale
                 break;
             }
         }
@@ -1234,31 +1198,32 @@ void F_cancella_arco_lista(Grafo G,int p,int a)
     else printf("\nDeallocazione effettuata!\n");
 }
 
-
+/* Eliminazione di un arco nella matrice di Adj */
 void F_cancella_arco_matrice(Grafo G,int p,int a)
 {
     M matrice = G->struttura;
     matrice->matrice[p][a]=0;
 }
 
+/* Deallocazione di un valore di tipo intero */
 void F_dealloca_intero(void *elem)
 {
-    printf("\n\nDEALLOCO:%d\n\n",*((int *)elem));
     free(((int *)elem));
 }
 
+/* Deallocazione di un valore di tipo carattere o stringa */
 void F_dealloca_carattere_stringa(void *elem)
 {
-    printf("\n\nDEALLOCO:%c\n\n",*((char *)elem));
     free(((char *)elem));
 }
 
+/* Deallocazione di un valore di tipo float */
 void F_dealloca_float(void *elem)
 {
-    printf("\n\nDEALLOCO:%f\n\n",*((float *)elem));
     free(((float *)elem));
 }
 
+/* Cancella un nodo della matrice di Adj */
 void F_cancella_nodo_matrice(Grafo G,int c)
 {
     int new_size=(G->nsize-1),i=0,j=0,ni=0,nj=0;
@@ -1266,10 +1231,12 @@ void F_cancella_nodo_matrice(Grafo G,int c)
     Nm nodi_matrice = struttura_matrice->nodo;
     float **matrice_old=struttura_matrice->matrice;
 
+    /* Creazione della nuova matrice */
     float **matrice_new=(float **)malloc(new_size* sizeof(float *));
     for(i=0;i<new_size;i++)
         matrice_new[i]=(float *)malloc(new_size* sizeof(float *));
 
+    /* Copia dei valori della vecchia lista escludendo il nodo scelto */
     for(i=0;i<G->nsize;i++)
     {
         if(i!=c)
@@ -1287,10 +1254,12 @@ void F_cancella_nodo_matrice(Grafo G,int c)
     }
 
     nodi_matrice[c].nodo=NULL;
-
+    /* Copia dell'array contenente i nodi della lista */
     for(i=c;i<new_size;i++)
         nodi_matrice[i]=nodi_matrice[i+1];
     free(matrice_old);
+
+    /* Inserimento delle informazioni nella nuova matrice */
     nodi_matrice = (struct struttura_elemento_array_nodo_matrice *)realloc(nodi_matrice,new_size* sizeof(struct struttura_elemento_array_nodo_matrice));
     nodi_matrice->extra=NULL;
     struttura_matrice->nodo=nodi_matrice;
@@ -1299,21 +1268,22 @@ void F_cancella_nodo_matrice(Grafo G,int c)
     G->nsize=new_size;
 }
 
+/* Cancella un nodo della lista di Adj */
 void F_cancella_nodo_lista(Grafo G,int c)
 {
     L Lista = G->struttura,curr=NULL,prec=NULL,Lista_del=Lista;
 
     if(Lista!=NULL) {
         int i=0,confronto;
-
+        /* Preleva il nodo da eliminare */
         for(i=0;i<c;i++)
             Lista_del=Lista_del->ptrNext;
 
         void *elem_del = Lista_del->nodo;
 
+        L Tmp=Lista;
 
-      L Tmp=Lista;
-
+        /* Cancellazione del nodo e degli eventuali arhci presenti */
         while(Tmp!=NULL)
         {
             curr=Tmp->ptrArco, prec=Tmp;
@@ -1336,7 +1306,7 @@ void F_cancella_nodo_lista(Grafo G,int c)
         }
 
 
-        if(i==0) // testa
+        if(i==0) // Testa
         {
             Tmp=Lista;
             Lista=Lista->ptrNext;
@@ -1345,14 +1315,14 @@ void F_cancella_nodo_lista(Grafo G,int c)
         {
             int s=0;
             L CodaMezz=Lista;
-            if(i==(G->nsize-1)) // coda
+            if(i==(G->nsize-1)) // Coda
             {
                 for(;s<(G->nsize-2);s++)
                     CodaMezz=CodaMezz->ptrNext;
 
                 Tmp=CodaMezz->ptrNext;
                 CodaMezz->ptrNext=NULL;
-            } else
+            } else // In mezzo
             {
                 int elmprec=(i-1);
                 for(;s<elmprec;s++)
@@ -1371,6 +1341,7 @@ void F_cancella_nodo_lista(Grafo G,int c)
     } else puts("\nStruttura non presente!\n");
 }
 
+/* Effettua il trasposto della lista di Adj */
 void F_trasposto_lista(Grafo G)
 {
     L Lista_old = G->struttura;
@@ -1381,6 +1352,7 @@ void F_trasposto_lista(Grafo G)
 
     while (ListaOldPrinc!=NULL)
     {
+        /* Allocazione in coda dei nodi del grafo */
         void *elem = G->copia_dato(ListaOldPrinc->nodo);
         L newElLista=(struct struttura_grafo_lista_adiacenza *)malloc(sizeof(struct struttura_grafo_lista_adiacenza));
         newElLista->ptrNext=NULL;
@@ -1400,23 +1372,22 @@ void F_trasposto_lista(Grafo G)
         ListaOldPrinc=ListaOldPrinc->ptrNext;
     }
 
-    ListaOldPrinc=G->struttura;
-    L ListaNewPrinc=Lista_new;
+    ListaOldPrinc=G->struttura; // Lista vecchia
+    L ListaNewPrinc=Lista_new;  // Lista nova
 
     while(ListaOldPrinc!=NULL)
     {
         L ArcoOld = ListaOldPrinc->ptrArco;
-       // printf("\nOLD - Considero l'elemento (%d)\n",*((int *)ListaOldPrinc->nodo));
 
+        /* Verifica esistenza arco */
         while (ArcoOld!=NULL)
         {
-         //   printf("\nOLD - L'elemento di prima ha un arco (%d), lo cerco nella lista nuova",*((int *)ArcoOld->nodo));
-            if(G->infpeso!=1) InfPeso=ArcoOld->ptrPeso->peso;
+            if(G->infpeso!=1) InfPeso=ArcoOld->ptrPeso->peso; // Salva il valore del peso
 
+            /* Ricerca del nodo nella nuova lista */
             while(ListaNewPrinc!=NULL)
             {
-           //     printf("\nConfronto il nodo vecchio (%d) con quello nuovo che in questo momento e' (%d)\n",*((int *)ArcoOld->nodo),*((int *)ListaNewPrinc->nodo));
-                controllo=G->confronto_elementi(ArcoOld->nodo,ListaNewPrinc->nodo);
+                controllo=G->confronto_elementi(ArcoOld->nodo,ListaNewPrinc->nodo); // Trova il nodo nella nuova lista
                 if(controllo==0) break;
                 ListaNewPrinc=ListaNewPrinc->ptrNext;
             }
@@ -1424,21 +1395,20 @@ void F_trasposto_lista(Grafo G)
             if(ListaNewPrinc!=NULL)
             {
                ListaNewPartenza=ListaNewPrinc;
-             //  printf("\nNEW - Ho trovato l'elemento nella nuova lista (%d). Questo sara' l'elemento di partenza",*((int *)ListaNewPartenza->nodo));
                ListaNewPrinc=Lista_new;
             }
             else{puts("\nERROR: arco grafo trasposto"); exit(-4);}
 
             void *ArrivoOld = ListaOldPrinc->nodo;
-           // printf("\nOLD - L'elelemtno che diventerà il nuovo arco sara' (%d), lo cerco nella nuova lista",*((int *)ListaOldPrinc->nodo));
+
+            /* Ricerca del nodo collegato all'arco nella nuova lista */
             while(ListaNewPrinc!=NULL)
             {
                 controllo=G->confronto_elementi(ArrivoOld,ListaNewPrinc->nodo);
-             //   printf("\nConfronto l'elemento vecchio (%d) con quello nuovo che sto cercando nelle lista che ora e' (%d)",*((int *)ArrivoOld),*((int *)ListaNewPrinc->nodo));
                 if(controllo==0) break;
                 ListaNewPrinc=ListaNewPrinc->ptrNext;
             }
-
+            /* Inserimento dell'arco */
             if(ListaNewPrinc!=NULL)
             {
                 void *ArrivoNew=ListaNewPrinc->nodo;
@@ -1465,23 +1435,25 @@ void F_trasposto_lista(Grafo G)
 
         ListaOldPrinc=ListaOldPrinc->ptrNext;
     }
-
+    /* Deallocazione vecchia lista */
     F_dealloca_grafo_lista(Lista_old,G);
     G->struttura=Lista_new;
 }
 
+/* Deallocazione del grafo in lista di Adj */
 void F_dealloca_grafo_lista(void *struttura,Grafo G)
 {
     L Lista = struttura;
     L TmpNext=NULL;
     L ListaPrinc=Lista;
+
     while(Lista!=NULL)
     {
         L Arco = Lista->ptrArco;
 
         while (Arco!=NULL)
         {
-            if(G->infpeso!=1)
+            if(G->infpeso!=1) // eliminazione della struttura contenente il peso
             {
                 Arco->ptrPeso->peso=0;
                 free(Arco->ptrPeso);
@@ -1495,7 +1467,7 @@ void F_dealloca_grafo_lista(void *struttura,Grafo G)
         Lista=TmpNext;
     }
 
-    while (ListaPrinc!=NULL)
+    while (ListaPrinc!=NULL) // eliminazione del valori dei nodi
     {
         TmpNext=ListaPrinc->ptrNext;
         G->dealloca_elemento(ListaPrinc->nodo);
@@ -1505,6 +1477,7 @@ void F_dealloca_grafo_lista(void *struttura,Grafo G)
     puts("\nHo deallocato la lista precedente!\n");
 }
 
+/* Deallocazione del grafo in matrice di Adj */
 void F_dealloca_grafo_matrice(void *struttura,Grafo G)
 {
     int i=0,j=0;
@@ -1520,33 +1493,34 @@ void F_dealloca_grafo_matrice(void *struttura,Grafo G)
     puts("\nHo deallocato la matrice precedente!\n");
 }
 
+/* Effettua il trasposto della matrice di Adj */
 void F_trasposto_matrice(Grafo G)
 {
     int i=0,j=0;
     M struttura_matrice = G->struttura;
     float **matrice_old=struttura_matrice->matrice;
 
+    /* Creazione della nuova matrice */
     float **matrice_new=(float **)malloc(G->nsize* sizeof(float *));
     for(i=0;i<G->nsize;i++)
         matrice_new[i]=(float *)malloc(G->nsize* sizeof(float *));
-
+    /* Copio i valori della matrice principale in quella copiata (usata per comodo) */
     F_copia_matrice_identica(matrice_new,matrice_old,G->nsize);
-
+    /* Inizializzo la matrice principale */
     F_inizializza_matrice(G);
 
+    /* Copio i valori invertengo riga/colonna */
     for(i=0;i<G->nsize;i++)
         for(j=0;j<G->nsize;j++)
         {
             if(matrice_new[i][j] < 0 || matrice_new[i][j] > 0)
                 matrice_old[j][i]=matrice_new[i][j];
         }
-
+    /* Dealloco la matrice creata */
     for(i=0;i<G->nsize;i++)
         free(matrice_new[i]);
-
     free(matrice_new);
 }
-
 
 /* Funzione per la copia di un tipo intero */
 void *F_copia_dato_intero(void *val)
@@ -1585,7 +1559,7 @@ void *F_copia_dato_stringa(void *val)
     return stringa;
 }
 
-
+/* Trasforma la matrice in lista di Adj */
 void F_matrice_a_lista(Grafo G)
 {
     int i=0,j=0,k=0;
@@ -1596,6 +1570,7 @@ void F_matrice_a_lista(Grafo G)
 
     for(i=0;i<G->nsize;i++)
     {
+        /* Copia in coda dei nodi presenti */
         void *elem=G->copia_dato(nodi_matrice[i].nodo);
         G->dealloca_elemento(nodi_matrice[i].nodo);
         L newElLista=(struct struttura_grafo_lista_adiacenza *)malloc(sizeof(struct struttura_grafo_lista_adiacenza));
@@ -1619,8 +1594,9 @@ void F_matrice_a_lista(Grafo G)
     for(i=0;i<G->nsize;i++)
         for(j=0;j<G->nsize;j++)
         {
-            if(matrice[i][j]>0 || matrice[i][j]<0)
+            if(matrice[i][j]>0 || matrice[i][j]<0) // E' presente un arco
             {
+                /* Prelevo i nodi di riferimento di riga e colonna */
                 for(k=0;k<i;k++)
                     ListaRiga=ListaRiga->ptrNext;
 
@@ -1631,13 +1607,13 @@ void F_matrice_a_lista(Grafo G)
                 L newElLista = NULL;
                 newElLista=F_alloca_elemento_lista(newElLista,ListaColonna->nodo);
 
-                if(G->infpeso!=1)
+                if(G->infpeso!=1) // Pesato
                 {
                    P newPeso=F_alloca_struttura_peso(matrice[i][j]);
                    newElLista->ptrPeso=newPeso;
                 }
 
-                if(ListaRiga->ptrArco!=NULL)
+                if(ListaRiga->ptrArco!=NULL) // Inserisco l'arco con le relative informazioni
                 {
                     newElLista->ptrArco=ListaRiga->ptrArco;
                     ListaRiga->ptrArco=newElLista;
@@ -1646,10 +1622,11 @@ void F_matrice_a_lista(Grafo G)
             }
         }
 
-    G=F_aggiungi_info(G,1,G->tipodato,G->nsize,G->infpeso);
+    G=F_aggiungi_info(G,1,G->tipodato,G->nsize,G->infpeso); // Correggo le callback e le info per una lista
     G->struttura=Lista_new;
 }
 
+/* Trasforma la lista in matrice di Adj */
 void F_lista_a_matrice(Grafo G)
 {
     int i=0,j=0,controllo=-1;
@@ -1659,6 +1636,7 @@ void F_lista_a_matrice(Grafo G)
     M struttura_matrice = (struct struttura_elemento_matrice *)malloc(sizeof(struct struttura_elemento_matrice));
     Nm array_nodo_matrice = (struct struttura_elemento_array_nodo_matrice *)malloc(G->nsize* sizeof(struct struttura_elemento_array_nodo_matrice));
     array_nodo_matrice->extra=NULL;
+    /* Alloca la nuova matrice */
     float **matrice_new=(float **)malloc(G->nsize* sizeof(float *));
     for(i=0;i<G->nsize;i++)
         matrice_new[i]=(float *)malloc(G->nsize* sizeof(float *));
@@ -1667,15 +1645,16 @@ void F_lista_a_matrice(Grafo G)
     G->struttura=struttura_matrice;
     F_inizializza_matrice(G);
 
+    /* Copia dei nodi della lista nell'array in riferimento alla matrice */
     for(i=0;i<G->nsize;i++)
     {
-        void *newEl=F_copia_dato_intero(ListaScorr->nodo);
+        void *newEl=G->copia_dato(ListaScorr->nodo);
         array_nodo_matrice[i].nodo=newEl;
         ListaScorr=ListaScorr->ptrNext;
     }
     struttura_matrice->nodo=array_nodo_matrice;
     ListaScorr=Lista;
-
+    /* Ricerca di archi e copia delle informazioni nella matrice */
     for(i=0;i<G->nsize;i++) {
         L Arco = ListaScorr->ptrArco;
 
@@ -1702,11 +1681,12 @@ void F_lista_a_matrice(Grafo G)
         }
         ListaScorr=ListaScorr->ptrNext;
     }
-    F_dealloca_grafo_lista(Lista,G);
-    G=F_aggiungi_info(G,2,G->tipodato,G->nsize,G->infpeso);
+    F_dealloca_grafo_lista(Lista,G); // Eliminazione della lista
+    G=F_aggiungi_info(G,2,G->tipodato,G->nsize,G->infpeso); // Correggo le callback e le info per una matrice
 }
 
-void *F_inizializza_bfs_lista(Grafo G,int s)
+/* Funzione di inizializzazione dell'array per lista colore prima delle visite */
+void *F_inizializza_bfsdfs_lista(Grafo G,int s,int df)
 {
     L Nodo_s=NULL;
     int cont=0;
@@ -1714,24 +1694,29 @@ void *F_inizializza_bfs_lista(Grafo G,int s)
 
     while(Lista!=NULL)
     {
+        /* Alloca la struttura per mantenere l'informazione del colore del nodo */
         C newColore=(struct struttra_extra_colore *)malloc(sizeof(struct struttra_extra_colore));
 
-        if(cont==s) {
-            newColore->colore=1;
+        if(cont==s) { // (Solo BFS) al nodo selezionato viene inserito il colore grigio=1
+            if(df==0) newColore->colore=1; // Verifica se bfs o dfs
+            else newColore->colore=0;   // In dfs restano tutti i nodi bianchi=0
+
             Nodo_s=Lista;
         }
         else newColore->colore=0;
-
+        /* Collego la struttura colore */
         Lista->extra=newColore;
         Lista=Lista->ptrNext;
         cont++;
     }
-
+    // Ritorno il nodo per verifica e per stamparlo
     return Nodo_s;
 }
 
-void *F_inizializza_bfs_matrice(Grafo G,int s)
+/* Funzione di inizializzazione dell'array colore per matrice prima delle visite */
+void *F_inizializza_bfsdfs_matrice(Grafo G,int s,int df)
 {
+    /* Commenti di riferimento in: F_inizializza_bfsdfs_lista */
     Nm Nodo_s=NULL;
     M struttura_matrice = G->struttura;
     Nm nodi_matrice = struttura_matrice->nodo;
@@ -1743,7 +1728,9 @@ void *F_inizializza_bfs_matrice(Grafo G,int s)
 
         if(i==s)
         {
-            newColore->colore=1;
+            if(df==0) newColore->colore=1;
+            else newColore->colore=0;
+
             Nodo_s=nodi_matrice[i].nodo;
         } else newColore->colore=0;
 
@@ -1753,12 +1740,20 @@ void *F_inizializza_bfs_matrice(Grafo G,int s)
     return Nodo_s;
 }
 
+/* Ritorna il vertice adiacente, se presente, in una lista di Adj */
 void *F_vertice_adiacente_lista(Grafo G,void *u, void *ultimo)
 {
     int controllo=-1;
     L Nodo=u;
     L Ulti=ultimo;
     L Lista=G->struttura;
+    /*
+     * Ultimo rappresenta l'ultimo nodo che e' stato passato come vertice adiacente.
+     * La prima volta ultimo risulta=NULL e la funzione restituisce il primo vertice,
+     * i successivi ultimo saranno uguali all'utlimo vertice ritornato dalla funzione.
+     * In questo modo viene cercato il successivo vertice adiacente partendo dall'informazione
+     * in ultimo.
+     * */
 
     while (Lista!=NULL)
     {
@@ -1770,7 +1765,7 @@ void *F_vertice_adiacente_lista(Grafo G,void *u, void *ultimo)
 
     if(Nodo->ptrArco!=NULL) {
 
-        if (ultimo != NULL) {
+        if (ultimo != NULL) { // E' stato gia' preso un adiacente
 
             while (Nodo!=NULL) {
 
@@ -1784,12 +1779,13 @@ void *F_vertice_adiacente_lista(Grafo G,void *u, void *ultimo)
                 Nodo=Nodo->ptrArco;
             }
 
-        } else ultimo=Nodo->ptrArco;
+        } else ultimo=Nodo->ptrArco; // Primo vertice adiacente trovato
     }
 
     return ultimo;
 }
 
+/* Ritorna il vertice adiacente, se presente, in una matrice di Adj */
 void *F_vertice_adiacente_matrice(Grafo G,void *u, void *ultimo)
 {
     Nm Nodo=u;
@@ -1799,6 +1795,14 @@ void *F_vertice_adiacente_matrice(Grafo G,void *u, void *ultimo)
     Nm nodi_matrice = struttura_matrice->nodo;
     int i=0, j=0,salvaNodo=-1,confronto=-1;
 
+    /*
+     * Ultimo rappresenta l'ultimo nodo che e' stato passato come vertice adiacente.
+     * La prima volta ultimo risulta=NULL e la funzione restituisce il primo vertice,
+     * i successivi ultimo saranno uguali all'utlimo vertice ritornato dalla funzione.
+     * In questo modo viene cercato il successivo vertice adiacente partendo dall'informazione
+     * in ultimo.
+     * */
+
     for(i=0;i<G->nsize;i++) // Seleziono la riga i
     {
         confronto=G->confronto_elementi(nodi_matrice[i].nodo,Nodo);
@@ -1807,13 +1811,11 @@ void *F_vertice_adiacente_matrice(Grafo G,void *u, void *ultimo)
 
     for(j=0;j<G->nsize;j++)
     {
-        if(matrice[i][j]==1 || matrice[i][j]>0 || matrice[i][j]<0)
+        if(matrice[i][j]==1 || matrice[i][j]>0 || matrice[i][j]<0) // Trovato vertice
         {
-            if(Ulti!=NULL)
+            if(Ulti!=NULL) // E' stato gia' preso un vertice adiacente
             {
-                //printf("\nCi stava gia' un valore, mi porto avanti con j per il prossimo 1 di indice:%d\n",j+1);
-
-                while (j<G->nsize && Ulti!=NULL)
+                while (j<G->nsize && Ulti!=NULL) // Ricerca del successivo vertice se presente
                 {
                     confronto=G->confronto_elementi(nodi_matrice[j].nodo,Ulti);
 
@@ -1827,9 +1829,8 @@ void *F_vertice_adiacente_matrice(Grafo G,void *u, void *ultimo)
                     }
                 }
             }
-            else
+            else // Primo vertice adiacente trovato
             {
-               // printf("\nho trovato un 1 all'indice:%d\n",j);
                 salvaNodo=j;
                 break;
             }
@@ -1843,15 +1844,18 @@ void *F_vertice_adiacente_matrice(Grafo G,void *u, void *ultimo)
     return ultimo;
 }
 
+/* Funzione per la verifica del colore di un nodo nella lista di Adj */
 int F_controllo_colore_bfs_lista(Grafo G, void *elem)
 {
-    // Posso avere archi quindi senza il puntatore al colore, devo andare a cercarlo
+    // Elem=posso avere archi quindi senza il puntatore al colore, devo andare a cercarlo
     L el=F_trova_elemento_bfs_lista(G,elem);
 
+    /* Accesso alla struttura contenente il colore */
     if(((struct struttra_extra_colore*)el->extra)->colore==0) return 0;
-    else return -1;
+    return ((struct struttra_extra_colore*)el->extra)->colore;
 }
 
+/* Ritorna il nodo della struttura principale in lista di Adj */
 L F_trova_elemento_bfs_lista(Grafo  G, void *elem)
 {
     L Lista = G->struttura;
@@ -1867,39 +1871,16 @@ L F_trova_elemento_bfs_lista(Grafo  G, void *elem)
     return elem;
 }
 
-
+/* Funzione per la verifica del colore di un nodo nella matrice di Adj */
 int F_controllo_colore_bfs_matrice(Grafo G, void *elem)
 {
     void *c=F_trova_elemento_bfs_matrice(G,elem);
     C col=c;
     if(col->colore==0) return  0;
-    else return -1;
-
-    //Nm el=F_trova_elemento_bfs_matrice(G,elem);
-
-    //if(((struct struttra_extra_colore*)el->extra)->colore==0) return 0;
-    //else return -1;
+    else return col->colore;
 }
 
-/*Nm F_trova_elemento_bfs_matrice(Grafo G, void *elem)
-{
-    Nm adiacente=elem;
-    M struttura_matrice = G->struttura;
-    Nm nodi_matrice = struttura_matrice->nodo;
-    int i=0,confronto=0;
-
-    for(i=0;i<G->nsize;i++)
-    {
-        confronto=G->confronto_elementi(adiacente,nodi_matrice[i].nodo);
-        if(confronto==0) break;
-    }
-
-    adiacente=nodi_matrice[i].nodo;
-
-    return adiacente;
-}*/
-
-
+/* Ritorna il nodo della struttura principale in matrice di Adj */
 void *F_trova_elemento_bfs_matrice(Grafo G, void *elem)
 {
     Nm adiacente=elem;
@@ -1918,33 +1899,32 @@ void *F_trova_elemento_bfs_matrice(Grafo G, void *elem)
     return a;
 }
 
+/* Cambia il colore del nodo con il valore passato per lista Adj */
 void F_cambia_colore_bfs_lista(Grafo G,void *elem, int colore)
 {
     L el=F_trova_elemento_bfs_lista(G,elem);
-
     ((struct struttra_extra_colore*)el->extra)->colore=colore;
-
 }
 
+/* Cambia il colore del nodo con il valore passato per matrice Adj */
 void F_cambia_colore_bfs_matrice(Grafo G,void *elem, int colore)
 {
-    //Nm el=F_trova_elemento_bfs_matrice(G,elem);
     void *c=F_trova_elemento_bfs_matrice(G,elem);
     C col=c;
     col->colore=colore;
-    // ((struct struttra_extra_colore*)el->extra)->colore=colore;
 }
 
+/* Stampa generica per BFS */
 void F_stampa_bfs_lista(Grafo G,void *elem)
 {
     L stampa = elem;
-    G->stampa_elemento(stampa->nodo);
+    G->stampa_elemento(stampa->nodo); // Richiama: F_stampa_intero/float/carattere/stringa
 }
 
+/* Stampa BFS per matrice */
 void F_stampa_bfs_matrice(Grafo G,void *elem)
 {
-    G->stampa_elemento(elem);
-
+    G->stampa_elemento(elem); // Richiama: F_stampa_intero/float/carattere/stringa
 }
 
 /* Generazione casuale di un valore float */
@@ -1961,7 +1941,6 @@ void *F_crea_float()
 /* Funzione per la creazione di un elemento carattere */
 void *F_crea_carattere()
 {
-    /* DICHIARAZIONE VARIABILI */
     int min=0,max=0;
     char c;
 
@@ -1989,6 +1968,7 @@ void *F_crea_carattere()
     return elemento;
 }
 
+/* Funzione per la creazione di un elemento stringa */
 void *F_crea_stringa()
 {
     /* DICHIARAZIONE VARIABILI*/
@@ -2035,7 +2015,7 @@ void *F_crea_stringa()
     return stringa;
 }
 
-
+/* Prende in input un elemento carattere */
 void *F_inserisci_carattere(int dim)
 {
     /* DICHIARAZIONE VARIABILI*/
@@ -2065,6 +2045,7 @@ void *F_inserisci_carattere(int dim)
     return elemento;
 }
 
+/* Prende in input un elemento di tipo stringa */
 void *F_inserisci_stringa(int dim)
 {
     /* DICHIARAZIONE VARIABILI */
@@ -2089,6 +2070,7 @@ void *F_inserisci_stringa(int dim)
     return stringa_uscita;
 }
 
+/* Inizializza l'array dei predecerssori */
 void F_inizializza_pred(Grafo G)
 {
     int i=0;
@@ -2097,9 +2079,10 @@ void F_inizializza_pred(Grafo G)
     for(i=0;i<G->nsize;i++)
         arrPred[i].nodo=NULL;
 
-    G->pred=arrPred;
+    G->pred=arrPred; // Inserimento nella struttura generale
 }
 
+/* Gestione del'array dei predecessori per lista Adj */
 void F_predecessoreBfs_lista(Grafo G, void *u,void *vAdiac)
 {
     Pred arrayPred=G->pred;
@@ -2107,12 +2090,11 @@ void F_predecessoreBfs_lista(Grafo G, void *u,void *vAdiac)
     int indice=-1,confronto=-1;
     L vAdiacente=vAdiac;
 
+    /* trovo l'indice dell'elemento */
     while(Lista!=NULL)
     {
         indice++;
-        confronto=G->confronto_elementi(Lista->nodo,vAdiacente->nodo);
-
-       // printf("\n\nCONFRONTO |%d| CON |%d|\n\n",*((int *)Lista->nodo),*((int *)vAdiacente->nodo)); // CANC
+        confronto=G->confronto_elementi(Lista->nodo,vAdiacente->nodo); // Richiama: F_confronto_interi/float/carattere/stringa
 
         if(confronto==0) break;
 
@@ -2120,10 +2102,9 @@ void F_predecessoreBfs_lista(Grafo G, void *u,void *vAdiac)
     }
 
     arrayPred[indice].nodo=u;
-   // L aa=u;
-   // printf("\nHO MESSO QUALCOSA IN ARRAY all'indice [%d]\n -- Ho messo |%d|\n\n",indice,*((int *)aa->nodo));
 }
 
+/* Gestione del'array dei predecessori per matrice Adj */
 void F_predecessoreBfs_matrice(Grafo G,void *u,void *vAdiac)
 {
     Pred arrayPred=G->pred;
@@ -2133,13 +2114,13 @@ void F_predecessoreBfs_matrice(Grafo G,void *u,void *vAdiac)
 
     for(indice=0;indice<G->nsize;indice++)
     {
-        confronto=G->confronto_elementi(nodi_matrice[indice].nodo,vAdiac); // vAdiac potrebbe non contenere un cazzo (Si deve fare tipo vAdiac->nodo)
+        confronto=G->confronto_elementi(nodi_matrice[indice].nodo,vAdiac); // Richiama: F_confronto_interi/float/carattere/stringa
         if(confronto==0) break;
     }
-
     arrayPred[indice].nodo=u;
 }
 
+/* Ritorna un nodo della lista in base all'indice passato */
 void *F_preleva_nodo_lista(Grafo G, int i)
 {
     void *nodo=NULL;
@@ -2154,6 +2135,7 @@ void *F_preleva_nodo_lista(Grafo G, int i)
     return nodo;
 }
 
+/* Ritorna un nodo della matrice in base all'indice passato */
 void *F_preleva_nodo_matrice(Grafo G, int i)
 {
     void *nodo=NULL;
@@ -2165,21 +2147,17 @@ void *F_preleva_nodo_matrice(Grafo G, int i)
     return nodo;
 }
 
+/* Ritorna il nodo presente nell'array */
 void *F_check_pred(Grafo G,int i)
 {
     Pred arrayPred=G->pred;
     void *v=NULL;
-
     v=arrayPred[i].nodo;
 
-    //if(arrayPred[i].nodo==NULL) puts("\nVUOTO\n\n"); // Canc
-   // else {
-      //  L vv=v;
-      //  printf("\nNon vuoto: |%d|\n\n", *((int *) vv->nodo)); // Canc
-   // }
     return v;
 }
 
+/* Ritorna l'indice dell'elemento passato in una lista di Adj */
 int F_trova_indice_elem_lista(Grafo G,void *elem)
 {
     L Lista=G->struttura;
@@ -2189,7 +2167,7 @@ int F_trova_indice_elem_lista(Grafo G,void *elem)
     while(Lista!=NULL)
     {
         i++;
-        confronto=G->confronto_elementi(Lista->nodo,el->nodo);
+        confronto=G->confronto_elementi(Lista->nodo,el->nodo); // Richiama: F_confronto_interi/float/carattere/stringa
         if(confronto==0) break;
         Lista=Lista->ptrNext;
     }
@@ -2197,6 +2175,7 @@ int F_trova_indice_elem_lista(Grafo G,void *elem)
     return i;
 }
 
+/* Ritorna l'indice dell'elemento passato in una matrice di Adj */
 int F_trova_indice_elem_matrice(Grafo G,void *elem)
 {
     M struttura_matrice = G->struttura;
@@ -2205,9 +2184,37 @@ int F_trova_indice_elem_matrice(Grafo G,void *elem)
 
     for(i=0;i<G->nsize;i++)
     {
-        confronto=G->confronto_elementi(nodi_matrice[i].nodo,elem);
+        confronto=G->confronto_elementi(nodi_matrice[i].nodo,elem); // Richiama: F_confronto_interi/float/carattere/stringa
         if(confronto==0) break;
     }
 
     return i;
+}
+
+/* DFS: lista */
+void F_verticeDfs_lista(Grafo G)
+{
+    L Lista=G->struttura; G->ciclo=0;
+
+    while (Lista!=NULL)
+    {
+        if(((struct struttra_extra_colore*)Lista->extra)->colore==0)
+            F_Dfs_visit(G,Lista);
+
+        Lista=Lista->ptrNext;
+    }
+}
+
+/* DFS: matrice */
+void F_verticeDfs_matrice(Grafo G)
+{
+    M struttura_matrice = G->struttura;
+    Nm nodi_matrice = struttura_matrice->nodo;
+    int i=0;  G->ciclo=0;
+
+    for(i=0;i<G->nsize;i++)
+    {
+        C col=nodi_matrice[i].extra;
+        if(col->colore==0) F_Dfs_visit(G,nodi_matrice[i].nodo);
+    }
 }

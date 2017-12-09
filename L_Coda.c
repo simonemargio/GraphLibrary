@@ -1,7 +1,3 @@
-//
-// Created by ikaros on 02/11/2017.
-//
-
 #include "L_Coda.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,6 +7,7 @@ Coda F_enqueue(Coda C,void *elem)
 {
     Coda nuovo_elemento=(struct struttura_elemento_coda *)malloc(sizeof(struct struttura_elemento_coda));
 
+    /* Inserimento del nuovo elemento in coda */
     if(nuovo_elemento!=NULL)
     {
         nuovo_elemento->elemPtr=elem;
