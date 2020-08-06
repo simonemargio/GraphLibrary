@@ -1,0 +1,2 @@
+# Graph library
+Graph management library with type operations: reading/writing a file graph, checking the acyclicity of a graph, converting three of the two graphic representations (adjacent lists<->adjacent matrix), vertical insertions and bows, visits and more.
